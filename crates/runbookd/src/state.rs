@@ -31,6 +31,10 @@ pub struct DaemonState {
 
     /// True when Logi plugin is connected.
     pub logi_connected: bool,
+
+    /// Latched: the most recent state of the last session to end.
+    /// Used so we can show "Ended" briefly after the last session goes away.
+    pub last_ended_state: Option<AgentState>,
 }
 
 impl DaemonState {
@@ -44,20 +48,41 @@ impl DaemonState {
             hooks_connected: false,
             vscode_connected: false,
             logi_connected: false,
+            last_ended_state: None,
         }
     }
 
-    /// Returns the agent state for the currently active session,
-    /// falling back to Unknown if no session is active or hooks are disconnected.
+    /// Returns the agent state to render.
+    ///
+    /// Rules:
+    /// - **No hooks received** → `Unknown`
+    /// - **0 live sessions** → `last_ended_state` (briefly shows `Ended`), then `Unknown`
+    /// - **1 session** → that session's state
+    /// - **>1 sessions** → `Unknown` (multi-session ambiguity)
     pub fn current_agent_state(&self) -> AgentState {
         if !self.hooks_connected {
             return AgentState::Unknown;
         }
-        self.active_session
-            .as_ref()
-            .and_then(|sid| self.sessions.get(sid))
-            .map(|s| s.agent_state)
-            .unwrap_or(AgentState::Unknown)
+
+        match self.sessions.len() {
+            0 => {
+                // All sessions ended. Show latched end state if available.
+                self.last_ended_state.unwrap_or(AgentState::Unknown)
+            }
+            1 => {
+                // Single session — show its state directly.
+                self.sessions
+                    .values()
+                    .next()
+                    .map(|s| s.agent_state)
+                    .unwrap_or(AgentState::Unknown)
+            }
+            _ => {
+                // Multiple live sessions — we can't truthfully map
+                // terminal selection ↔ session_id yet, so degrade.
+                AgentState::Unknown
+            }
+        }
     }
 
     /// Ensure a session entry exists and return a mutable reference.
@@ -65,6 +90,27 @@ impl DaemonState {
         self.sessions
             .entry(session_id.to_string())
             .or_insert_with(|| SessionState::new())
+    }
+
+    /// Remove a session (on SessionEnd) and clean up related state.
+    pub fn remove_session(&mut self, session_id: &str) {
+        if let Some(session) = self.sessions.remove(session_id) {
+            self.last_ended_state = Some(session.agent_state);
+        }
+
+        // If the ended session was the active one, clear selection.
+        if self.active_session.as_deref() == Some(session_id) {
+            self.active_session = None;
+
+            // If exactly one session remains, auto-select it.
+            if self.sessions.len() == 1 {
+                self.active_session = self.sessions.keys().next().cloned();
+            }
+        }
+
+        // Clear armed + last_dispatched — no valid target anymore.
+        self.armed = None;
+        self.last_dispatched = None;
     }
 }
 

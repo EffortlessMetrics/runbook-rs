@@ -170,11 +170,12 @@ fn reduce_dialpad(
         }
 
         DialpadButton::Export => {
-            // Send /export without newline; user must confirm with Enter.
+            // Send /export with newline — starts the flow immediately.
+            // Claude's own confirmation prompts remain the safety gate.
             let cmd = VscodeCommand::send_text(
                 TerminalTarget::ActiveClaude,
                 "/export",
-                false,
+                true,
             );
             vec![SideEffect::SendVscodeCommand(cmd)]
         }
@@ -257,8 +258,18 @@ fn reduce_hook(
             session.agent_state = AgentState::Settled;
         }
         "SessionEnd" => {
-            session.agent_state = AgentState::Ended;
+            // Don't just set state — remove the session entirely.
+            // state.remove_session() clears armed/last_dispatched and
+            // latches the final state for brief "Ended" display.
+            state.remove_session(&sid);
         }
+        // Our own policy events (not from Claude Code).
+        "RunbookPolicy" => match matcher.as_deref() {
+            Some("blocked") => {
+                session.agent_state = AgentState::Blocked;
+            }
+            _ => {}
+        },
         _ => {}
     }
 
@@ -452,5 +463,119 @@ prompts:
         let state = DaemonState::new(0);
         assert!(!state.hooks_connected);
         assert_eq!(state.current_agent_state(), AgentState::Unknown);
+    }
+
+    #[test]
+    fn session_end_removes_session_and_latches_ended() {
+        let config = sample_config();
+        let mut state = DaemonState::new(0);
+
+        // Start a session.
+        reduce(
+            &mut state,
+            &config,
+            Event::HookEvent {
+                hook: "Notification".to_string(),
+                matcher: Some("idle_prompt".to_string()),
+                session_id: Some("sess1".to_string()),
+            },
+        );
+        state.armed = Some("prep_pr".to_string());
+        state.last_dispatched = Some("prep_pr".to_string());
+        assert_eq!(state.current_agent_state(), AgentState::Idle);
+
+        // End the session.
+        reduce(
+            &mut state,
+            &config,
+            Event::HookEvent {
+                hook: "SessionEnd".to_string(),
+                matcher: None,
+                session_id: Some("sess1".to_string()),
+            },
+        );
+
+        // Session should be removed.
+        assert!(state.sessions.is_empty());
+        // Armed and last_dispatched should be cleared.
+        assert!(state.armed.is_none());
+        assert!(state.last_dispatched.is_none());
+        // Should briefly latch the ended state.
+        assert_eq!(state.last_ended_state, Some(AgentState::Idle));
+    }
+
+    #[test]
+    fn multi_session_degrades_to_unknown() {
+        let config = sample_config();
+        let mut state = DaemonState::new(0);
+
+        // Session 1: Idle.
+        reduce(
+            &mut state,
+            &config,
+            Event::HookEvent {
+                hook: "Notification".to_string(),
+                matcher: Some("idle_prompt".to_string()),
+                session_id: Some("sess1".to_string()),
+            },
+        );
+        assert_eq!(state.current_agent_state(), AgentState::Idle);
+
+        // Session 2: Running. Now we have >1 sessions.
+        reduce(
+            &mut state,
+            &config,
+            Event::HookEvent {
+                hook: "UserPromptSubmit".to_string(),
+                matcher: None,
+                session_id: Some("sess2".to_string()),
+            },
+        );
+
+        // Multi-session = degrade to Unknown (can't map terminals yet).
+        assert_eq!(state.sessions.len(), 2);
+        assert_eq!(state.current_agent_state(), AgentState::Unknown);
+
+        // End one session; back to single = show that session's state.
+        reduce(
+            &mut state,
+            &config,
+            Event::HookEvent {
+                hook: "SessionEnd".to_string(),
+                matcher: None,
+                session_id: Some("sess1".to_string()),
+            },
+        );
+        assert_eq!(state.sessions.len(), 1);
+        assert_eq!(state.current_agent_state(), AgentState::Running);
+    }
+
+    #[test]
+    fn runbook_policy_blocked() {
+        let config = sample_config();
+        let mut state = DaemonState::new(0);
+
+        // Start a session first.
+        reduce(
+            &mut state,
+            &config,
+            Event::HookEvent {
+                hook: "Notification".to_string(),
+                matcher: Some("idle_prompt".to_string()),
+                session_id: Some("sess1".to_string()),
+            },
+        );
+
+        // Policy blocks a tool call.
+        reduce(
+            &mut state,
+            &config,
+            Event::HookEvent {
+                hook: "RunbookPolicy".to_string(),
+                matcher: Some("blocked".to_string()),
+                session_id: Some("sess1".to_string()),
+            },
+        );
+        assert_eq!(state.current_agent_state(), AgentState::Blocked);
     }
 }

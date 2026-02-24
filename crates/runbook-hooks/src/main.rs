@@ -57,18 +57,24 @@ fn main() -> anyhow::Result<()> {
     // --- Hook-specific output (stdout) ---
 
     if args.hook == "PreToolUse" && args.deny_destructive_bash {
-        if let Some(cmd) = extract_bash_command(&payload) {
+        if let Some(ref cmd) = extract_bash_command(&payload) {
             let deny_patterns = built_in_deny_patterns();
             let extra = &args.deny_patterns;
 
-            if matches_any_pattern(&cmd, &deny_patterns)
-                || matches_any_pattern(&cmd, extra)
+            if matches_any_pattern(cmd, &deny_patterns)
+                || matches_any_pattern(cmd, extra)
             {
-                // Emit spec-compliant PreToolUse deny output.
+                // Emit spec-compliant PreToolUse deny output to stdout.
                 let out = PreToolUseDecisionOutput::deny(&format!(
                     "Blocked by Runbook policy: {cmd}"
                 ));
                 println!("{}", serde_json::to_string(&out)?);
+
+                // Also notify the daemon that we blocked something.
+                // This is *our* policy truth ("we denied this tool call"),
+                // not pretending Claude entered a blocked state.
+                notify_daemon_blocked(&args, session_id.as_deref(), cmd);
+
                 return Ok(());
             }
         }
@@ -102,6 +108,31 @@ fn forward_to_daemon(args: &Args, payload: &Value, session_id: Option<&str>) {
         matcher: args.matcher.clone(),
         session_id: session_id.map(|s| s.to_string()),
         payload: payload.clone(),
+    };
+
+    let url = format!("{}/hook", args.daemon.trim_end_matches('/'));
+    let _ = client.post(url).json(&ev).send();
+}
+
+/// Notify the daemon that we blocked a tool call via our policy.
+/// This is our own truth signal ("RunbookPolicy/blocked"), NOT a Claude lifecycle event.
+fn notify_daemon_blocked(args: &Args, session_id: Option<&str>, command: &str) {
+    let client = reqwest::blocking::Client::builder()
+        .timeout(std::time::Duration::from_millis(250))
+        .build();
+
+    let Ok(client) = client else { return };
+
+    let ev = HookEvent {
+        hook: "RunbookPolicy".to_string(),
+        matcher: Some("blocked".to_string()),
+        session_id: session_id.map(|s| s.to_string()),
+        payload: serde_json::json!({
+            "runbook_policy": {
+                "name": "deny_destructive_bash",
+                "command": command,
+            }
+        }),
     };
 
     let url = format!("{}/hook", args.daemon.trim_end_matches('/'));

@@ -5,8 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "runbook-hooks SessionStart",
-            "async": true
+            "command": "runbook-hooks SessionStart"
           }
         ]
       }
@@ -40,8 +39,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "runbook-hooks PermissionRequest",
-            "async": true
+            "command": "runbook-hooks PermissionRequest"
           }
         ]
       }
@@ -53,8 +51,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "runbook-hooks Notification permission_prompt",
-            "async": true
+            "command": "runbook-hooks Notification permission_prompt"
           }
         ]
       },
@@ -63,8 +60,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "runbook-hooks Notification idle_prompt",
-            "async": true
+            "command": "runbook-hooks Notification idle_prompt"
           }
         ]
       },
@@ -73,8 +69,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "runbook-hooks Notification elicitation_dialog",
-            "async": true
+            "command": "runbook-hooks Notification elicitation_dialog"
           }
         ]
       }
@@ -109,8 +104,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "runbook-hooks TaskCompleted",
-            "async": true
+            "command": "runbook-hooks TaskCompleted"
           }
         ]
       }
@@ -121,8 +115,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "runbook-hooks Stop",
-            "async": true
+            "command": "runbook-hooks Stop"
           }
         ]
       }
@@ -133,8 +126,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "runbook-hooks SessionEnd",
-            "async": true
+            "command": "runbook-hooks SessionEnd"
           }
         ]
       }
