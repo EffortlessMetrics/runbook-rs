@@ -1,0 +1,9 @@
+{
+  "name": "runbook",
+  "description": "Runbook: a physical control surface for the Claude Code agent loop",
+  "version": "0.1.0",
+  "author": {
+    "name": "Runbook"
+  },
+  "repository": "https://github.com/runbook-rs/runbookd"
+}

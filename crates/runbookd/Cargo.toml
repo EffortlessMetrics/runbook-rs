@@ -1,0 +1,21 @@
+[package]
+name = "runbookd"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Runbook daemon: bridges Claude Code hooks, VS Code, and Logitech Actions plugins."
+
+[dependencies]
+anyhow = "1"
+axum = { version = "0.7", features = ["ws"] }
+clap = { version = "4", features = ["derive"] }
+futures = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "sync"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+runbook-protocol = { path = "../runbook-protocol" }
+

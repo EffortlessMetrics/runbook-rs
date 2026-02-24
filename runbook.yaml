@@ -1,0 +1,44 @@
+# Runbook config v1 (sample)
+
+# Daemon settings
+# daemon:
+#   listen: "127.0.0.1:29381"
+
+keypad:
+  initial_page: 0
+  pages:
+    - name: core
+      slots:
+        - id: prep_pr
+          label: PREP PR
+          sublabel: receipts
+          command: "/runbook:prep-pr"
+        - id: break_task
+          label: BREAK TASK
+          sublabel: plan
+          command: "/runbook:break-task"
+        - id: run_gates
+          label: RUN GATES
+          sublabel: tests
+          command: "/runbook:run-gates"
+        - id: write_receipt
+          label: RECEIPT
+          sublabel: summary
+          command: "/runbook:write-receipt"
+        - id: open_pr
+          label: PR
+          sublabel: jump
+          command: "/runbook:open-pr"
+        - id: open_issue
+          label: ISSUE
+          sublabel: jump
+          command: "/runbook:open-issue"
+        - id: noop_7
+          label: —
+          command: ""
+        - id: noop_8
+          label: —
+          command: ""
+        - id: noop_9
+          label: —
+          command: ""
