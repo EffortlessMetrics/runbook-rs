@@ -6,31 +6,57 @@ DAEMON_BASE_URL="${DAEMON_BASE_URL:-http://127.0.0.1:29381}"
 post() {
   local hook="$1"
   local matcher="${2:-}"
-  local payload="${3:-{}}"
+  local session_id="${3:-sess-demo-001}"
+  local payload="${4:-{}}"
 
+  local body
   if [[ -n "$matcher" ]]; then
-    curl -sS -X POST "$DAEMON_BASE_URL/hook" \
-      -H 'Content-Type: application/json' \
-      -d "{\"hook\":\"$hook\",\"matcher\":\"$matcher\",\"payload\":$payload}" >/dev/null
+    body="{\"hook\":\"$hook\",\"matcher\":\"$matcher\",\"session_id\":\"$session_id\",\"payload\":$payload}"
   else
-    curl -sS -X POST "$DAEMON_BASE_URL/hook" \
-      -H 'Content-Type: application/json' \
-      -d "{\"hook\":\"$hook\",\"matcher\":null,\"payload\":$payload}" >/dev/null
+    body="{\"hook\":\"$hook\",\"matcher\":null,\"session_id\":\"$session_id\",\"payload\":$payload}"
   fi
+
+  echo "→ $hook${matcher:+/$matcher}"
+  curl -sS -X POST "$DAEMON_BASE_URL/hook" \
+    -H 'Content-Type: application/json' \
+    -d "$body" >/dev/null
 }
 
 echo "Simulating Claude Code lifecycle events…"
+echo ""
 
-post "Notification" "idle_prompt" '{}'
-sleep 0.3
-post "UserPromptSubmit" "" '{"user_prompt":"/runbook:prep-pr"}'
-sleep 0.3
-post "Notification" "permission_prompt" '{"reason":"needs approval"}'
-sleep 0.3
-post "Notification" "idle_prompt" '{}'
-sleep 0.3
-post "TaskCompleted" "" '{"result":"ok"}'
-sleep 0.3
-post "Stop" "" '{}'
+echo "--- Session start ---"
+post "SessionStart" "" "sess-demo-001" '{}'
+sleep 0.5
 
-echo "done"
+echo "--- Idle (waiting for prompt) ---"
+post "Notification" "idle_prompt" "sess-demo-001" '{}'
+sleep 1
+
+echo "--- User submits prompt ---"
+post "UserPromptSubmit" "" "sess-demo-001" '{"prompt":"/runbook:prep-pr"}'
+sleep 1
+
+echo "--- Permission prompt (agent needs approval) ---"
+post "Notification" "permission_prompt" "sess-demo-001" '{"reason":"needs file write permission"}'
+sleep 1.5
+
+echo "--- Back to running ---"
+post "Notification" "idle_prompt" "sess-demo-001" '{}'
+sleep 0.5
+post "UserPromptSubmit" "" "sess-demo-001" '{"prompt":"continue"}'
+sleep 1
+
+echo "--- Task completed ---"
+post "TaskCompleted" "" "sess-demo-001" '{"result":"ok"}'
+sleep 0.5
+
+echo "--- Stop ---"
+post "Stop" "" "sess-demo-001" '{}'
+sleep 0.5
+
+echo "--- Session end ---"
+post "SessionEnd" "" "sess-demo-001" '{}'
+
+echo ""
+echo "✓ Simulation complete"

@@ -2,11 +2,11 @@
   "hooks": {
     "SessionStart": [
       {
-        "matcher": "startup",
         "hooks": [
           {
             "type": "command",
-            "command": "runbook-hooks SessionStart startup"
+            "command": "runbook-hooks SessionStart",
+            "async": true
           }
         ]
       }
@@ -17,8 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "runbook-hooks UserPromptSubmit",
-            "async": true
+            "command": "runbook-hooks UserPromptSubmit"
           }
         ]
       }
@@ -36,13 +35,26 @@
       }
     ],
 
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "runbook-hooks PermissionRequest",
+            "async": true
+          }
+        ]
+      }
+    ],
+
     "Notification": [
       {
         "matcher": "permission_prompt",
         "hooks": [
           {
             "type": "command",
-            "command": "runbook-hooks Notification permission_prompt"
+            "command": "runbook-hooks Notification permission_prompt",
+            "async": true
           }
         ]
       },
@@ -61,7 +73,32 @@
         "hooks": [
           {
             "type": "command",
-            "command": "runbook-hooks Notification elicitation_dialog"
+            "command": "runbook-hooks Notification elicitation_dialog",
+            "async": true
+          }
+        ]
+      }
+    ],
+
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "runbook-hooks PostToolUse",
+            "async": true
+          }
+        ]
+      }
+    ],
+
+    "PostToolUseFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "runbook-hooks PostToolUseFailure",
+            "async": true
           }
         ]
       }
