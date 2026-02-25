@@ -139,6 +139,19 @@ impl Default for DialMode {
     }
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum ArmStyle {
+    Queue,
+    Prefill,
+}
+
+impl Default for ArmStyle {
+    fn default() -> Self {
+        Self::Queue
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Client → Daemon messages
 // ---------------------------------------------------------------------------
@@ -265,6 +278,8 @@ pub struct RenderModel {
 pub struct ArmedPrompt {
     pub prompt_id: String,
     pub label: String,
+    #[serde(default)]
+    pub style: ArmStyle,
     /// The command/text that will be dispatched.
     pub command: String,
 }
@@ -507,6 +522,7 @@ mod tests {
                 armed: Some(ArmedPrompt {
                     prompt_id: "prep_pr".to_string(),
                     label: "PREP PR".to_string(),
+                    style: ArmStyle::Queue,
                     command: "/runbook:prep-pr".to_string(),
                 }),
                 keypad: KeypadRender {

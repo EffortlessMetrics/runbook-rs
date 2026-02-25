@@ -4,7 +4,7 @@
 //! without network or I/O.
 
 use runbook_protocol::{
-    AgentState, AdjustmentKind, DialpadButton, HooksMode, PageDirection,
+    AgentState, AdjustmentKind, ArmStyle, DialpadButton, HooksMode, PageDirection,
     TerminalScrollUnit, TerminalTarget, TerminalsSnapshot, VscodeCommand,
 };
 
@@ -52,9 +52,25 @@ pub fn reduce(
 ) -> Vec<SideEffect> {
     match event {
         Event::KeypadPress { prompt_id } => {
-            // Arm the prompt (do NOT dispatch).
-            if config.prompts.contains_key(&prompt_id) {
-                state.armed = Some(prompt_id);
+            // Arm the prompt
+            if let Some(prompt) = config.prompts.get(&prompt_id) {
+                state.armed = Some(prompt_id.clone());
+
+                let style = config.arm_style_for(&prompt_id);
+                if style == ArmStyle::Prefill {
+                    let is_claude = config.is_claude_primary();
+                    if let Some(cmd_text) = prompt.effective_command(is_claude) {
+                        let cmd = VscodeCommand::send_text(
+                            TerminalTarget::ActiveClaude,
+                            cmd_text,
+                            false, // prefill without newline
+                        );
+                        return vec![
+                            SideEffect::SendVscodeCommand(cmd),
+                            SideEffect::BroadcastRender,
+                        ];
+                    }
+                }
             }
             // Gates get dispatched immediately (they're navigation, not prompts).
             // The caller checks this before emitting the Event.
@@ -132,20 +148,36 @@ fn reduce_dialpad(
         DialpadButton::Enter => {
             if let Some(prompt_id) = state.armed.take() {
                 state.last_dispatched = Some(prompt_id.clone());
-                // Resolve the prompt to a command.
-                if let Some(prompt) = config.prompts.get(&prompt_id) {
-                    let is_claude = config.is_claude_primary();
-                    if let Some(cmd_text) = prompt.effective_command(is_claude) {
-                        let cmd = VscodeCommand::send_text(
-                            TerminalTarget::ActiveClaude,
-                            cmd_text,
-                            true,
-                        );
-                        return vec![
-                            SideEffect::SendVscodeCommand(cmd),
-                            SideEffect::BroadcastRender,
-                        ];
+                let style = config.arm_style_for(&prompt_id);
+
+                if style == ArmStyle::Queue {
+                    // Resolve the prompt to a command.
+                    if let Some(prompt) = config.prompts.get(&prompt_id) {
+                        let is_claude = config.is_claude_primary();
+                        if let Some(cmd_text) = prompt.effective_command(is_claude) {
+                            let cmd = VscodeCommand::send_text(
+                                TerminalTarget::ActiveClaude,
+                                cmd_text,
+                                true,
+                            );
+                            return vec![
+                                SideEffect::SendVscodeCommand(cmd),
+                                SideEffect::BroadcastRender,
+                            ];
+                        }
                     }
+                } else {
+                    // Prefill style: the text is already in the terminal.
+                    // Just send a bare Enter.
+                    let cmd = VscodeCommand::send_text(
+                        TerminalTarget::ActiveClaude,
+                        "",
+                        true,
+                    );
+                    return vec![
+                        SideEffect::SendVscodeCommand(cmd),
+                        SideEffect::BroadcastRender,
+                    ];
                 }
                 vec![SideEffect::BroadcastRender]
             } else {
@@ -161,9 +193,25 @@ fn reduce_dialpad(
 
         DialpadButton::Esc => {
             if state.armed.is_some() {
-                // Cancel arm (local only — do NOT send Esc to terminal).
+                // Cancel arm.
                 state.armed = None;
-                vec![SideEffect::BroadcastRender]
+                use crate::config::EscWhenPending;
+                match config.defaults.esc_when_pending {
+                    EscWhenPending::CancelOnly => {
+                        vec![SideEffect::BroadcastRender]
+                    }
+                    EscWhenPending::CancelAndPassthrough => {
+                        let cmd = VscodeCommand::send_text(
+                            TerminalTarget::ActiveClaude,
+                            "\u{1b}",
+                            false,
+                        );
+                        vec![
+                            SideEffect::SendVscodeCommand(cmd),
+                            SideEffect::BroadcastRender,
+                        ]
+                    }
+                }
             } else {
                 // Send Esc to Claude terminal.
                 let cmd = VscodeCommand::send_text(

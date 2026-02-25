@@ -75,7 +75,7 @@ keypad:
       slots:
         - prompt_id: prep_pr
         - prompt_id: break_task
-        - {}
+        - prompt_id: scratch_note
         - {}
         - {}
         - {}
@@ -91,6 +91,10 @@ prompts:
   break_task:
     label: "BREAK TASK"
     claude_command: "/runbook:break-task"
+  scratch_note:
+    label: "SCRATCH"
+    arm_style: prefill
+    fallback_text: "Draft a note"
 gates:
   pr:
     label: "PR"
@@ -273,6 +277,15 @@ async fn text_sent_with_newline(w: &mut DaemonWorld, text: String) {
     assert!(
         w.has_send_text(&text, true),
         "expected '{text}' with newline in effects: {:?}",
+        w.effects
+    );
+}
+
+#[then(expr = "{string} is sent to the terminal without newline")]
+async fn text_sent_without_newline(w: &mut DaemonWorld, text: String) {
+    assert!(
+        w.has_send_text(&text, false),
+        "expected '{text}' without newline in effects: {:?}",
         w.effects
     );
 }

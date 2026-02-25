@@ -42,3 +42,16 @@ Feature: Safety and dispatch
     Given a fresh daemon with prompts
     When the operator presses Export
     Then "/export" is sent to the terminal with newline
+
+  Scenario: Keypad press on prefill prompt sends text immediately without newline
+    Given a fresh daemon with prompts
+    When the operator presses keypad slot "scratch_note"
+    Then the daemon is armed with "scratch_note"
+    And "Draft a note" is sent to the terminal without newline
+
+  Scenario: Enter passthrough for prefill prompt
+    Given a fresh daemon with prompts
+    And the operator has armed "scratch_note"
+    When the operator presses Enter
+    Then the daemon is no longer armed
+    And a literal Enter is sent to the terminal

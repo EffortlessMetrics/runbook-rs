@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use serde::Deserialize;
 
-use runbook_protocol::DialMode;
+use runbook_protocol::{ArmStyle, DialMode};
 
 /// Top-level config loaded from `runbook.yaml`.
 #[derive(Debug, Clone, Deserialize)]
@@ -19,6 +19,9 @@ pub struct RunbookConfig {
 
     #[serde(default)]
     pub dial: DialConfig,
+
+    #[serde(default)]
+    pub defaults: DefaultsConfig,
 
     pub keypad: KeypadConfig,
 
@@ -112,6 +115,49 @@ impl Default for DialConfig {
 }
 
 // ---------------------------------------------------------------------------
+// Defaults
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct DefaultsConfig {
+    #[serde(default)]
+    pub arm_style: ArmStyle,
+
+    #[serde(default)]
+    pub esc_when_pending: EscWhenPending,
+
+    #[serde(default = "default_max_prefill_chars")]
+    pub max_prefill_chars: usize,
+}
+
+impl Default for DefaultsConfig {
+    fn default() -> Self {
+        Self {
+            arm_style: ArmStyle::default(),
+            esc_when_pending: EscWhenPending::default(),
+            max_prefill_chars: default_max_prefill_chars(),
+        }
+    }
+}
+
+fn default_max_prefill_chars() -> usize {
+    400
+}
+
+#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum EscWhenPending {
+    CancelOnly,
+    CancelAndPassthrough,
+}
+
+impl Default for EscWhenPending {
+    fn default() -> Self {
+        Self::CancelOnly
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Keypad
 // ---------------------------------------------------------------------------
 
@@ -153,6 +199,10 @@ pub struct PromptConfig {
     /// Optional second line.
     #[serde(default)]
     pub sublabel: Option<String>,
+
+    /// Override the default arm_style for this prompt.
+    #[serde(default)]
+    pub arm_style: Option<ArmStyle>,
 
     /// Claude Code slash command (used when tooling.primary == "claude_code").
     #[serde(default)]
@@ -269,6 +319,14 @@ impl RunbookConfig {
     /// Returns true when the primary tooling is Claude Code.
     pub fn is_claude_primary(&self) -> bool {
         self.tooling.primary == "claude_code"
+    }
+
+    /// Returns the effective ArmStyle for a prompt.
+    pub fn arm_style_for(&self, prompt_id: &str) -> ArmStyle {
+        self.prompts
+            .get(prompt_id)
+            .and_then(|p| p.arm_style)
+            .unwrap_or(self.defaults.arm_style)
     }
 }
 

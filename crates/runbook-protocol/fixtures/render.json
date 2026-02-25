@@ -4,6 +4,7 @@
   "armed": {
     "prompt_id": "prep_pr",
     "label": "PREP PR",
+    "style": "queue",
     "command": "/runbook:prep-pr"
   },
   "keypad": {

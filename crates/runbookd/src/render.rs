@@ -48,6 +48,7 @@ pub fn build_render_model(state: &DaemonState, config: &RunbookConfig) -> Render
             ArmedPrompt {
                 prompt_id: pid.clone(),
                 label: p.label.clone(),
+                style: config.arm_style_for(pid),
                 command: p
                     .effective_command(is_claude)
                     .unwrap_or("")
