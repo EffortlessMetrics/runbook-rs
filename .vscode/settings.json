@@ -1,0 +1,43 @@
+{
+  // =========================
+  // Editor hygiene
+  // =========================
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "editor.formatOnSave": true,
+  "editor.formatOnSaveMode": "file",
+
+  // Don't index build output.
+  "files.watcherExclude": {
+    "**/target/**": true
+  },
+  "search.exclude": {
+    "**/target": true
+  },
+
+  // =========================
+  // Rust: rust-analyzer + rustfmt + clippy
+  // =========================
+  "[rust]": {
+    "editor.defaultFormatter": "rust-lang.rust-analyzer"
+  },
+
+  "rust-analyzer.checkOnSave": true,
+  "rust-analyzer.check.command": "clippy",
+
+  // Faster save loop for multi-crate workspace.
+  "rust-analyzer.check.allTargets": false,
+
+  // Avoid background cargo locking Cargo.lock.
+  "rust-analyzer.cargo.targetDir": true,
+
+  // VS Code Test Explorer integration.
+  "rust-analyzer.testExplorer": true,
+
+  // =========================
+  // Dependi — dependency versions + vuln hints
+  // =========================
+  "dependi.vulnerability.enabled": true,
+  "dependi.rust.lockFileEnabled": true,
+  "dependi.extras.silenceUpdateMessages": true
+}
