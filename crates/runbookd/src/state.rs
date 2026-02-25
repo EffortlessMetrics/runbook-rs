@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::time::Instant;
 
-use runbook_protocol::AgentState;
+use runbook_protocol::{AgentState, HooksMode, TerminalInfo};
 
 /// Central daemon state. Owned by the daemon task behind a Mutex.
 #[derive(Debug)]
@@ -19,12 +19,25 @@ pub struct DaemonState {
     /// Session states keyed by `session_id` (from Claude Code hooks).
     pub sessions: HashMap<String, SessionState>,
 
-    /// Currently selected session (if multi-session).
-    pub active_session: Option<String>,
+    /// Learned mapping: session_tag → session_id (populated from hook events).
+    pub session_tag_map: HashMap<String, String>,
+
+    // ----- Terminal tracking (from VS Code extension) -----
+    /// Terminal list as last reported by VS Code.
+    pub terminals: Vec<TerminalInfo>,
+
+    /// Which terminal the roller has selected.
+    pub selected_terminal_index: usize,
+
+    /// Mapping: terminal_index → session_tag (from VS Code terminal env).
+    pub terminal_tag_map: HashMap<usize, String>,
 
     // ----- Capability tracking -----
-    /// True when at least one hook event has been received.
-    pub hooks_connected: bool,
+    /// Hook integration mode.
+    pub hooks_mode: HooksMode,
+
+    /// When the last hook event was received.
+    pub last_hook_ts: Option<Instant>,
 
     /// True when VS Code extension is connected.
     pub vscode_connected: bool,
@@ -33,7 +46,6 @@ pub struct DaemonState {
     pub logi_connected: bool,
 
     /// Latched: the most recent state of the last session to end.
-    /// Used so we can show "Ended" briefly after the last session goes away.
     pub last_ended_state: Option<AgentState>,
 }
 
@@ -44,8 +56,12 @@ impl DaemonState {
             last_dispatched: None,
             page: initial_page,
             sessions: HashMap::new(),
-            active_session: None,
-            hooks_connected: false,
+            session_tag_map: HashMap::new(),
+            terminals: Vec::new(),
+            selected_terminal_index: 0,
+            terminal_tag_map: HashMap::new(),
+            hooks_mode: HooksMode::Absent,
+            last_hook_ts: None,
             vscode_connected: false,
             logi_connected: false,
             last_ended_state: None,
@@ -55,41 +71,52 @@ impl DaemonState {
     /// Returns the agent state to render.
     ///
     /// Rules:
-    /// - **No hooks received** → `Unknown`
-    /// - **0 live sessions** → `last_ended_state` (briefly shows `Ended`), then `Unknown`
+    /// - **Hooks absent** → `Unknown`
+    /// - **0 live sessions** → `last_ended_state`, then `Unknown`
     /// - **1 session** → that session's state
-    /// - **>1 sessions** → `Unknown` (multi-session ambiguity)
+    /// - **>1 sessions** → try to resolve via terminal↔session correlation, else `Unknown`
     pub fn current_agent_state(&self) -> AgentState {
-        if !self.hooks_connected {
+        if self.hooks_mode == HooksMode::Absent {
             return AgentState::Unknown;
         }
 
         match self.sessions.len() {
-            0 => {
-                // All sessions ended. Show latched end state if available.
-                self.last_ended_state.unwrap_or(AgentState::Unknown)
-            }
-            1 => {
-                // Single session — show its state directly.
-                self.sessions
-                    .values()
-                    .next()
-                    .map(|s| s.agent_state)
-                    .unwrap_or(AgentState::Unknown)
-            }
+            0 => self.last_ended_state.unwrap_or(AgentState::Unknown),
+            1 => self
+                .sessions
+                .values()
+                .next()
+                .map(|s| s.agent_state)
+                .unwrap_or(AgentState::Unknown),
             _ => {
-                // Multiple live sessions — we can't truthfully map
-                // terminal selection ↔ session_id yet, so degrade.
-                AgentState::Unknown
+                // Multi-session: try to resolve via terminal selection.
+                if let Some(session_id) = self.selected_session_id() {
+                    self.sessions
+                        .get(&session_id)
+                        .map(|s| s.agent_state)
+                        .unwrap_or(AgentState::Unknown)
+                } else {
+                    // Can't correlate terminal → session. Degrade.
+                    AgentState::Unknown
+                }
             }
         }
+    }
+
+    /// Attempt to resolve the currently selected terminal to a session_id.
+    ///
+    /// Path: selected_terminal_index → terminal_tag_map → session_tag → session_tag_map → session_id
+    pub fn selected_session_id(&self) -> Option<String> {
+        let tag = self.terminal_tag_map.get(&self.selected_terminal_index)?;
+        let session_id = self.session_tag_map.get(tag)?;
+        Some(session_id.clone())
     }
 
     /// Ensure a session entry exists and return a mutable reference.
     pub fn ensure_session(&mut self, session_id: &str) -> &mut SessionState {
         self.sessions
             .entry(session_id.to_string())
-            .or_insert_with(|| SessionState::new())
+            .or_insert_with(SessionState::new)
     }
 
     /// Remove a session (on SessionEnd) and clean up related state.
@@ -98,19 +125,18 @@ impl DaemonState {
             self.last_ended_state = Some(session.agent_state);
         }
 
-        // If the ended session was the active one, clear selection.
-        if self.active_session.as_deref() == Some(session_id) {
-            self.active_session = None;
-
-            // If exactly one session remains, auto-select it.
-            if self.sessions.len() == 1 {
-                self.active_session = self.sessions.keys().next().cloned();
-            }
-        }
+        // Clean up session_tag_map entries pointing to this session.
+        self.session_tag_map.retain(|_tag, sid| sid != session_id);
 
         // Clear armed + last_dispatched — no valid target anymore.
         self.armed = None;
         self.last_dispatched = None;
+    }
+
+    /// Learn the session_tag → session_id mapping from a hook event.
+    pub fn learn_session_tag(&mut self, session_tag: &str, session_id: &str) {
+        self.session_tag_map
+            .insert(session_tag.to_string(), session_id.to_string());
     }
 }
 

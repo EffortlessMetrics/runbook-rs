@@ -1,0 +1,10 @@
+{
+  "type": "hook_event",
+  "hook": "Notification",
+  "matcher": "idle_prompt",
+  "session_id": "sess-abc123",
+  "session_tag": "tag-001",
+  "payload": {
+    "notification_type": "idle_prompt"
+  }
+}

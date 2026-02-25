@@ -1,0 +1,9 @@
+{
+  "type": "vscode_command",
+  "kind": "send_text",
+  "target": "active_claude",
+  "payload": {
+    "text": "/runbook:prep-pr",
+    "add_newline": true
+  }
+}

@@ -2,6 +2,8 @@ use std::collections::HashMap;
 
 use serde::Deserialize;
 
+use runbook_protocol::DialMode;
+
 /// Top-level config loaded from `runbook.yaml`.
 #[derive(Debug, Clone, Deserialize)]
 pub struct RunbookConfig {
@@ -14,6 +16,9 @@ pub struct RunbookConfig {
 
     #[serde(default)]
     pub tooling: ToolingConfig,
+
+    #[serde(default)]
+    pub dial: DialConfig,
 
     pub keypad: KeypadConfig,
 
@@ -83,6 +88,25 @@ impl Default for ToolingConfig {
         Self {
             primary: default_primary(),
             degraded_mode_label: default_degraded_label(),
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Dial
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct DialConfig {
+    /// `os_scroll` (default) or `vscode_terminal_scroll`.
+    #[serde(default)]
+    pub mode: DialMode,
+}
+
+impl Default for DialConfig {
+    fn default() -> Self {
+        Self {
+            mode: DialMode::default(),
         }
     }
 }

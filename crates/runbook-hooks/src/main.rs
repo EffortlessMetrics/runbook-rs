@@ -3,7 +3,7 @@ use std::io::Read;
 use clap::Parser;
 use serde_json::Value;
 
-use runbook_protocol::{HookEvent, PreToolUseDecisionOutput, UserPromptSubmitOutput};
+use runbook_protocol::{HookEvent, UserPromptSubmitOutput};
 
 /// Claude Code hook consumer.
 ///
@@ -51,10 +51,14 @@ fn main() -> anyhow::Result<()> {
         .and_then(|v| v.as_str())
         .map(|s| s.to_string());
 
-    // Forward event to daemon (best-effort, fire-and-forget).
-    forward_to_daemon(&args, &payload, session_id.as_deref());
+    // Extract session_tag from process environment (set by VS Code extension when
+    // launching Claude terminals via "Start Claude Session").
+    let session_tag = std::env::var("RUNBOOK_SESSION_TAG").ok();
 
-    // --- Hook-specific output (stdout) ---
+    // Forward event to daemon (best-effort, fire-and-forget).
+    forward_to_daemon(&args, &payload, session_id.as_deref(), session_tag.as_deref());
+
+    // --- Hook-specific enforcement ---
 
     if args.hook == "PreToolUse" && args.deny_destructive_bash {
         if let Some(ref cmd) = extract_bash_command(&payload) {
@@ -64,18 +68,13 @@ fn main() -> anyhow::Result<()> {
             if matches_any_pattern(cmd, &deny_patterns)
                 || matches_any_pattern(cmd, extra)
             {
-                // Emit spec-compliant PreToolUse deny output to stdout.
-                let out = PreToolUseDecisionOutput::deny(&format!(
-                    "Blocked by Runbook policy: {cmd}"
-                ));
-                println!("{}", serde_json::to_string(&out)?);
+                // Notify the daemon that we blocked something (UI signal).
+                notify_daemon_blocked(&args, session_id.as_deref(), session_tag.as_deref(), cmd);
 
-                // Also notify the daemon that we blocked something.
-                // This is *our* policy truth ("we denied this tool call"),
-                // not pretending Claude entered a blocked state.
-                notify_daemon_blocked(&args, session_id.as_deref(), cmd);
-
-                return Ok(());
+                // Exit-code enforcement: exit 2 blocks the tool call.
+                // This is more reliable than JSON stdout (upstream issues #10875, #18312).
+                eprintln!("Blocked by Runbook policy: {cmd}");
+                std::process::exit(2);
             }
         }
     }
@@ -96,7 +95,7 @@ fn main() -> anyhow::Result<()> {
 // Daemon forwarding
 // ---------------------------------------------------------------------------
 
-fn forward_to_daemon(args: &Args, payload: &Value, session_id: Option<&str>) {
+fn forward_to_daemon(args: &Args, payload: &Value, session_id: Option<&str>, session_tag: Option<&str>) {
     let client = reqwest::blocking::Client::builder()
         .timeout(std::time::Duration::from_millis(250))
         .build();
@@ -107,6 +106,7 @@ fn forward_to_daemon(args: &Args, payload: &Value, session_id: Option<&str>) {
         hook: args.hook.clone(),
         matcher: args.matcher.clone(),
         session_id: session_id.map(|s| s.to_string()),
+        session_tag: session_tag.map(|s| s.to_string()),
         payload: payload.clone(),
     };
 
@@ -116,7 +116,7 @@ fn forward_to_daemon(args: &Args, payload: &Value, session_id: Option<&str>) {
 
 /// Notify the daemon that we blocked a tool call via our policy.
 /// This is our own truth signal ("RunbookPolicy/blocked"), NOT a Claude lifecycle event.
-fn notify_daemon_blocked(args: &Args, session_id: Option<&str>, command: &str) {
+fn notify_daemon_blocked(args: &Args, session_id: Option<&str>, session_tag: Option<&str>, command: &str) {
     let client = reqwest::blocking::Client::builder()
         .timeout(std::time::Duration::from_millis(250))
         .build();
@@ -127,6 +127,7 @@ fn notify_daemon_blocked(args: &Args, session_id: Option<&str>, command: &str) {
         hook: "RunbookPolicy".to_string(),
         matcher: Some("blocked".to_string()),
         session_id: session_id.map(|s| s.to_string()),
+        session_tag: session_tag.map(|s| s.to_string()),
         payload: serde_json::json!({
             "runbook_policy": {
                 "name": "deny_destructive_bash",

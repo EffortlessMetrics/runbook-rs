@@ -1,0 +1,23 @@
+{
+  "type": "render",
+  "agent_state": "idle",
+  "armed": {
+    "prompt_id": "prep_pr",
+    "label": "PREP PR",
+    "command": "/runbook:prep-pr"
+  },
+  "keypad": {
+    "slots": [
+      {
+        "slot": 0,
+        "prompt_id": "prep_pr",
+        "label": "PREP PR",
+        "sublabel": "receipts",
+        "armed": true
+      }
+    ]
+  },
+  "page_index": 0,
+  "page_count": 2,
+  "hooks_mode": "active"
+}

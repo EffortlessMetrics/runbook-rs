@@ -106,6 +106,7 @@ async fn hook_handler(
         hook: ev.hook,
         matcher: ev.matcher,
         session_id: ev.session_id,
+        session_tag: ev.session_tag,
     })
     .await;
     "ok"
@@ -262,8 +263,13 @@ impl App {
                     hook: ev.hook,
                     matcher: ev.matcher,
                     session_id: ev.session_id,
+                    session_tag: ev.session_tag,
                 })
                 .await;
+            }
+
+            ClientToDaemon::TerminalsSnapshot(snapshot) => {
+                self.apply_event(Event::TerminalsSnapshot(snapshot)).await;
             }
         }
     }

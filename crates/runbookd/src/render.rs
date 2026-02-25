@@ -62,7 +62,7 @@ pub fn build_render_model(state: &DaemonState, config: &RunbookConfig) -> Render
         keypad: KeypadRender { slots },
         page_index,
         page_count,
-        hooks_connected: state.hooks_connected,
+        hooks_mode: state.hooks_mode,
     }
 }
 
@@ -132,6 +132,6 @@ gates:
 
         assert_eq!(model.page_index, 0);
         assert_eq!(model.page_count, 1);
-        assert!(!model.hooks_connected);
+        assert_eq!(model.hooks_mode, runbook_protocol::HooksMode::Absent);
     }
 }

@@ -4,8 +4,8 @@
 //! without network or I/O.
 
 use runbook_protocol::{
-    AgentState, AdjustmentKind, DialpadButton, PageDirection, TerminalScrollUnit,
-    TerminalTarget, VscodeCommand,
+    AgentState, AdjustmentKind, DialpadButton, HooksMode, PageDirection,
+    TerminalScrollUnit, TerminalTarget, TerminalsSnapshot, VscodeCommand,
 };
 
 use crate::config::RunbookConfig;
@@ -22,7 +22,9 @@ pub enum Event {
         hook: String,
         matcher: Option<String>,
         session_id: Option<String>,
+        session_tag: Option<String>,
     },
+    TerminalsSnapshot(TerminalsSnapshot),
     ClientConnected { kind: ClientKindTag },
     ClientDisconnected { kind: ClientKindTag },
 }
@@ -87,7 +89,21 @@ pub fn reduce(
             hook,
             matcher,
             session_id,
-        } => reduce_hook(state, hook, matcher, session_id),
+            session_tag,
+        } => reduce_hook(state, hook, matcher, session_id, session_tag),
+
+        Event::TerminalsSnapshot(snapshot) => {
+            // Update terminal list and tag mapping from VS Code extension.
+            state.terminal_tag_map.clear();
+            for t in &snapshot.terminals {
+                if let Some(ref tag) = t.session_tag {
+                    state.terminal_tag_map.insert(t.index, tag.clone());
+                }
+            }
+            state.terminals = snapshot.terminals;
+            state.selected_terminal_index = snapshot.active_index;
+            vec![SideEffect::BroadcastRender]
+        }
 
         Event::ClientConnected { kind } => {
             match kind {
@@ -214,15 +230,18 @@ fn reduce_hook(
     hook: String,
     matcher: Option<String>,
     session_id: Option<String>,
+    session_tag: Option<String>,
 ) -> Vec<SideEffect> {
-    state.hooks_connected = true;
+    // Transition hooks_mode: Absent → Active on first event.
+    state.hooks_mode = HooksMode::Active;
+    state.last_hook_ts = Some(std::time::Instant::now());
 
     // Determine the session to update.
     let sid = session_id.unwrap_or_else(|| "_default".to_string());
 
-    // Auto-select the session if none is active.
-    if state.active_session.is_none() {
-        state.active_session = Some(sid.clone());
+    // Learn session_tag → session_id mapping if both are present.
+    if let Some(ref tag) = session_tag {
+        state.learn_session_tag(tag, &sid);
     }
 
     let session = state.ensure_session(&sid);
@@ -241,14 +260,12 @@ fn reduce_hook(
             session.agent_state = AgentState::Running;
         }
         "PreToolUse" => {
-            // Tool about to execute — still running.
             session.agent_state = AgentState::Running;
         }
         "PermissionRequest" => {
             session.agent_state = AgentState::WaitingPermission;
         }
         "PostToolUse" | "PostToolUseFailure" => {
-            // Tool finished — back to running (Claude will continue or stop).
             session.agent_state = AgentState::Running;
         }
         "TaskCompleted" => {
@@ -258,12 +275,8 @@ fn reduce_hook(
             session.agent_state = AgentState::Settled;
         }
         "SessionEnd" => {
-            // Don't just set state — remove the session entirely.
-            // state.remove_session() clears armed/last_dispatched and
-            // latches the final state for brief "Ended" display.
             state.remove_session(&sid);
         }
-        // Our own policy events (not from Claude Code).
         "RunbookPolicy" => match matcher.as_deref() {
             Some("blocked") => {
                 session.agent_state = AgentState::Blocked;
@@ -440,9 +453,10 @@ prompts:
                 hook: "Notification".to_string(),
                 matcher: Some("idle_prompt".to_string()),
                 session_id: Some("sess1".to_string()),
+                session_tag: None,
             },
         );
-        assert!(state.hooks_connected);
+        assert_eq!(state.hooks_mode, HooksMode::Active);
         assert_eq!(state.current_agent_state(), AgentState::Idle);
 
         reduce(
@@ -452,6 +466,7 @@ prompts:
                 hook: "UserPromptSubmit".to_string(),
                 matcher: None,
                 session_id: Some("sess1".to_string()),
+                session_tag: None,
             },
         );
         assert_eq!(state.current_agent_state(), AgentState::Running);
@@ -461,7 +476,7 @@ prompts:
     fn no_hooks_means_unknown() {
         let config = sample_config();
         let state = DaemonState::new(0);
-        assert!(!state.hooks_connected);
+        assert_eq!(state.hooks_mode, HooksMode::Absent);
         assert_eq!(state.current_agent_state(), AgentState::Unknown);
     }
 
@@ -478,6 +493,7 @@ prompts:
                 hook: "Notification".to_string(),
                 matcher: Some("idle_prompt".to_string()),
                 session_id: Some("sess1".to_string()),
+                session_tag: None,
             },
         );
         state.armed = Some("prep_pr".to_string());
@@ -492,6 +508,7 @@ prompts:
                 hook: "SessionEnd".to_string(),
                 matcher: None,
                 session_id: Some("sess1".to_string()),
+                session_tag: None,
             },
         );
 
@@ -517,6 +534,7 @@ prompts:
                 hook: "Notification".to_string(),
                 matcher: Some("idle_prompt".to_string()),
                 session_id: Some("sess1".to_string()),
+                session_tag: None,
             },
         );
         assert_eq!(state.current_agent_state(), AgentState::Idle);
@@ -529,6 +547,7 @@ prompts:
                 hook: "UserPromptSubmit".to_string(),
                 matcher: None,
                 session_id: Some("sess2".to_string()),
+                session_tag: None,
             },
         );
 
@@ -544,6 +563,7 @@ prompts:
                 hook: "SessionEnd".to_string(),
                 matcher: None,
                 session_id: Some("sess1".to_string()),
+                session_tag: None,
             },
         );
         assert_eq!(state.sessions.len(), 1);
@@ -563,6 +583,7 @@ prompts:
                 hook: "Notification".to_string(),
                 matcher: Some("idle_prompt".to_string()),
                 session_id: Some("sess1".to_string()),
+                session_tag: None,
             },
         );
 
@@ -574,8 +595,34 @@ prompts:
                 hook: "RunbookPolicy".to_string(),
                 matcher: Some("blocked".to_string()),
                 session_id: Some("sess1".to_string()),
+                session_tag: None,
             },
         );
         assert_eq!(state.current_agent_state(), AgentState::Blocked);
     }
+
+    #[test]
+    fn session_tag_learns_correlation() {
+        let config = sample_config();
+        let mut state = DaemonState::new(0);
+
+        // Hook arrives with both session_id and session_tag.
+        reduce(
+            &mut state,
+            &config,
+            Event::HookEvent {
+                hook: "Notification".to_string(),
+                matcher: Some("idle_prompt".to_string()),
+                session_id: Some("sess1".to_string()),
+                session_tag: Some("tag-abc".to_string()),
+            },
+        );
+
+        // The daemon should have learned the mapping.
+        assert_eq!(
+            state.session_tag_map.get("tag-abc"),
+            Some(&"sess1".to_string())
+        );
+    }
 }
+
