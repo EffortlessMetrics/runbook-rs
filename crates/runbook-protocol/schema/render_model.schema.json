@@ -1,0 +1,224 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RenderModel",
+  "type": "object",
+  "required": [
+    "agent_state",
+    "hooks_mode",
+    "keypad",
+    "page_count",
+    "page_index"
+  ],
+  "properties": {
+    "agent_state": {
+      "$ref": "#/definitions/AgentState"
+    },
+    "armed": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/ArmedPrompt"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "hooks_mode": {
+      "description": "Hook integration status.",
+      "allOf": [
+        {
+          "$ref": "#/definitions/HooksMode"
+        }
+      ]
+    },
+    "keypad": {
+      "$ref": "#/definitions/KeypadRender"
+    },
+    "page_count": {
+      "type": "integer",
+      "format": "uint",
+      "minimum": 0.0
+    },
+    "page_index": {
+      "type": "integer",
+      "format": "uint",
+      "minimum": 0.0
+    }
+  },
+  "definitions": {
+    "AgentState": {
+      "oneOf": [
+        {
+          "description": "No telemetry (non-Claude tools, or hooks not installed).",
+          "type": "string",
+          "enum": [
+            "unknown"
+          ]
+        },
+        {
+          "description": "Claude Code is ready for the next prompt (idle_prompt).",
+          "type": "string",
+          "enum": [
+            "idle"
+          ]
+        },
+        {
+          "description": "A prompt has been submitted (UserPromptSubmit) and Claude is working.",
+          "type": "string",
+          "enum": [
+            "running"
+          ]
+        },
+        {
+          "description": "Claude is blocked on a permission prompt.",
+          "type": "string",
+          "enum": [
+            "waiting_permission"
+          ]
+        },
+        {
+          "description": "Claude is blocked on an elicitation/clarification dialog.",
+          "type": "string",
+          "enum": [
+            "waiting_input"
+          ]
+        },
+        {
+          "description": "Claude has completed a bounded task (TaskCompleted).",
+          "type": "string",
+          "enum": [
+            "complete"
+          ]
+        },
+        {
+          "description": "Claude has stopped responding (Stop) but session still exists.",
+          "type": "string",
+          "enum": [
+            "settled"
+          ]
+        },
+        {
+          "description": "Session ended (SessionEnd).",
+          "type": "string",
+          "enum": [
+            "ended"
+          ]
+        },
+        {
+          "description": "A tool call was blocked by policy (PreToolUse deny).",
+          "type": "string",
+          "enum": [
+            "blocked"
+          ]
+        },
+        {
+          "description": "Prompt dispatched in degraded mode (no hook confirmation available).",
+          "type": "string",
+          "enum": [
+            "sent"
+          ]
+        }
+      ]
+    },
+    "ArmStyle": {
+      "type": "string",
+      "enum": [
+        "queue",
+        "prefill"
+      ]
+    },
+    "ArmedPrompt": {
+      "type": "object",
+      "required": [
+        "command",
+        "label",
+        "prompt_id"
+      ],
+      "properties": {
+        "command": {
+          "description": "The command/text that will be dispatched.",
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "prompt_id": {
+          "type": "string"
+        },
+        "style": {
+          "default": "queue",
+          "allOf": [
+            {
+              "$ref": "#/definitions/ArmStyle"
+            }
+          ]
+        }
+      }
+    },
+    "HooksMode": {
+      "oneOf": [
+        {
+          "description": "No hook events ever received.",
+          "type": "string",
+          "enum": [
+            "absent"
+          ]
+        },
+        {
+          "description": "Hook events arriving normally.",
+          "type": "string",
+          "enum": [
+            "active"
+          ]
+        }
+      ]
+    },
+    "KeypadRender": {
+      "type": "object",
+      "required": [
+        "slots"
+      ],
+      "properties": {
+        "slots": {
+          "description": "What to show on each of the 9 LCD keys.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/KeypadSlotRender"
+          }
+        }
+      }
+    },
+    "KeypadSlotRender": {
+      "type": "object",
+      "required": [
+        "armed",
+        "label",
+        "prompt_id",
+        "slot"
+      ],
+      "properties": {
+        "armed": {
+          "type": "boolean"
+        },
+        "label": {
+          "type": "string"
+        },
+        "prompt_id": {
+          "type": "string"
+        },
+        "slot": {
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "sublabel": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

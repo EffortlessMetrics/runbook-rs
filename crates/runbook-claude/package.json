@@ -1,0 +1,8 @@
+{
+  "name": "runbook-claude",
+  "version": "0.1.0",
+  "description": "Claude Code plugin for Runbook orchestration skills",
+  "claude-code": {
+    "plugin": true
+  }
+}

@@ -1,0 +1,369 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DaemonToClient",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "daemon_version",
+        "protocol",
+        "type"
+      ],
+      "properties": {
+        "daemon_version": {
+          "type": "string"
+        },
+        "protocol": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "hello"
+          ]
+        }
+      }
+    },
+    {
+      "description": "UI model update (key labels, armed prompt, agent state).",
+      "type": "object",
+      "required": [
+        "agent_state",
+        "hooks_mode",
+        "keypad",
+        "page_count",
+        "page_index",
+        "type"
+      ],
+      "properties": {
+        "agent_state": {
+          "$ref": "#/definitions/AgentState"
+        },
+        "armed": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ArmedPrompt"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "hooks_mode": {
+          "description": "Hook integration status.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/HooksMode"
+            }
+          ]
+        },
+        "keypad": {
+          "$ref": "#/definitions/KeypadRender"
+        },
+        "page_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "page_index": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "render"
+          ]
+        }
+      }
+    },
+    {
+      "description": "Command to VS Code extension.",
+      "type": "object",
+      "required": [
+        "kind",
+        "payload",
+        "target",
+        "type"
+      ],
+      "properties": {
+        "kind": {
+          "$ref": "#/definitions/VscodeCommandKind"
+        },
+        "payload": true,
+        "target": {
+          "$ref": "#/definitions/TerminalTarget"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "vscode_command"
+          ]
+        }
+      }
+    },
+    {
+      "description": "Human-readable notification (debug / toast).",
+      "type": "object",
+      "required": [
+        "message",
+        "type"
+      ],
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "notice"
+          ]
+        }
+      }
+    }
+  ],
+  "definitions": {
+    "AgentState": {
+      "oneOf": [
+        {
+          "description": "No telemetry (non-Claude tools, or hooks not installed).",
+          "type": "string",
+          "enum": [
+            "unknown"
+          ]
+        },
+        {
+          "description": "Claude Code is ready for the next prompt (idle_prompt).",
+          "type": "string",
+          "enum": [
+            "idle"
+          ]
+        },
+        {
+          "description": "A prompt has been submitted (UserPromptSubmit) and Claude is working.",
+          "type": "string",
+          "enum": [
+            "running"
+          ]
+        },
+        {
+          "description": "Claude is blocked on a permission prompt.",
+          "type": "string",
+          "enum": [
+            "waiting_permission"
+          ]
+        },
+        {
+          "description": "Claude is blocked on an elicitation/clarification dialog.",
+          "type": "string",
+          "enum": [
+            "waiting_input"
+          ]
+        },
+        {
+          "description": "Claude has completed a bounded task (TaskCompleted).",
+          "type": "string",
+          "enum": [
+            "complete"
+          ]
+        },
+        {
+          "description": "Claude has stopped responding (Stop) but session still exists.",
+          "type": "string",
+          "enum": [
+            "settled"
+          ]
+        },
+        {
+          "description": "Session ended (SessionEnd).",
+          "type": "string",
+          "enum": [
+            "ended"
+          ]
+        },
+        {
+          "description": "A tool call was blocked by policy (PreToolUse deny).",
+          "type": "string",
+          "enum": [
+            "blocked"
+          ]
+        },
+        {
+          "description": "Prompt dispatched in degraded mode (no hook confirmation available).",
+          "type": "string",
+          "enum": [
+            "sent"
+          ]
+        }
+      ]
+    },
+    "ArmStyle": {
+      "type": "string",
+      "enum": [
+        "queue",
+        "prefill"
+      ]
+    },
+    "ArmedPrompt": {
+      "type": "object",
+      "required": [
+        "command",
+        "label",
+        "prompt_id"
+      ],
+      "properties": {
+        "command": {
+          "description": "The command/text that will be dispatched.",
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "prompt_id": {
+          "type": "string"
+        },
+        "style": {
+          "default": "queue",
+          "allOf": [
+            {
+              "$ref": "#/definitions/ArmStyle"
+            }
+          ]
+        }
+      }
+    },
+    "HooksMode": {
+      "oneOf": [
+        {
+          "description": "No hook events ever received.",
+          "type": "string",
+          "enum": [
+            "absent"
+          ]
+        },
+        {
+          "description": "Hook events arriving normally.",
+          "type": "string",
+          "enum": [
+            "active"
+          ]
+        }
+      ]
+    },
+    "KeypadRender": {
+      "type": "object",
+      "required": [
+        "slots"
+      ],
+      "properties": {
+        "slots": {
+          "description": "What to show on each of the 9 LCD keys.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/KeypadSlotRender"
+          }
+        }
+      }
+    },
+    "KeypadSlotRender": {
+      "type": "object",
+      "required": [
+        "armed",
+        "label",
+        "prompt_id",
+        "slot"
+      ],
+      "properties": {
+        "armed": {
+          "type": "boolean"
+        },
+        "label": {
+          "type": "string"
+        },
+        "prompt_id": {
+          "type": "string"
+        },
+        "slot": {
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "sublabel": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "TerminalTarget": {
+      "oneOf": [
+        {
+          "description": "The daemon/extension's notion of the current Claude Code terminal.",
+          "type": "string",
+          "enum": [
+            "active_claude"
+          ]
+        },
+        {
+          "description": "Whatever VS Code reports as active terminal.",
+          "type": "string",
+          "enum": [
+            "active"
+          ]
+        },
+        {
+          "description": "A terminal at a specific index in the terminal list.",
+          "type": "object",
+          "required": [
+            "by_index"
+          ],
+          "properties": {
+            "by_index": {
+              "type": "integer",
+              "format": "uint",
+              "minimum": 0.0
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "VscodeCommandKind": {
+      "oneOf": [
+        {
+          "description": "Send text to the target terminal.",
+          "type": "string",
+          "enum": [
+            "send_text"
+          ]
+        },
+        {
+          "description": "Focus/select a terminal session.",
+          "type": "string",
+          "enum": [
+            "focus_terminal"
+          ]
+        },
+        {
+          "description": "Scroll terminal output.",
+          "type": "string",
+          "enum": [
+            "scroll_terminal"
+          ]
+        },
+        {
+          "description": "Open a URI in the default browser / editor.",
+          "type": "string",
+          "enum": [
+            "open_uri"
+          ]
+        }
+      ]
+    }
+  }
+}
