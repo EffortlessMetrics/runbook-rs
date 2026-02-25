@@ -17,7 +17,7 @@ pub const PROTOCOL_VERSION: u32 = 1;
 // Enums
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, schemars::JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum ClientKind {
     Logi,
@@ -25,7 +25,7 @@ pub enum ClientKind {
     Hooks,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, schemars::JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum AgentState {
     /// No telemetry (non-Claude tools, or hooks not installed).
@@ -56,7 +56,7 @@ impl Default for AgentState {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, schemars::JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum DialpadButton {
     CtrlC,
@@ -65,21 +65,21 @@ pub enum DialpadButton {
     Enter,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, schemars::JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum AdjustmentKind {
     Dial,
     Roller,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, schemars::JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum PageDirection {
     Prev,
     Next,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, schemars::JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum VscodeCommandKind {
     /// Send text to the target terminal.
@@ -92,13 +92,13 @@ pub enum VscodeCommandKind {
     OpenUri,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, schemars::JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum TerminalScrollUnit {
     Lines,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum TerminalTarget {
     /// The daemon/extension's notion of the current Claude Code terminal.
@@ -109,7 +109,7 @@ pub enum TerminalTarget {
     ByIndex(usize),
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, schemars::JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum HooksMode {
     /// No hook events ever received.
@@ -124,7 +124,7 @@ impl Default for HooksMode {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, schemars::JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum DialMode {
     /// Default: OS-level scroll (Logi profile built-in, no daemon involvement).
@@ -139,7 +139,7 @@ impl Default for DialMode {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, schemars::JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum ArmStyle {
     Queue,
@@ -156,7 +156,7 @@ impl Default for ArmStyle {
 // Client → Daemon messages
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ClientToDaemon {
     Hello(Hello),
@@ -178,7 +178,7 @@ pub enum ClientToDaemon {
 // Daemon → Client messages
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum DaemonToClient {
     Hello(HelloAck),
@@ -197,7 +197,7 @@ pub enum DaemonToClient {
 // Payload structs
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct Hello {
     pub client: ClientKind,
     pub protocol: u32,
@@ -207,36 +207,36 @@ pub struct Hello {
     pub capabilities: Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct HelloAck {
     pub protocol: u32,
     pub daemon_version: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct KeypadPress {
     /// Prompt ID from the current page slot (not a raw index).
     pub prompt_id: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct DialpadButtonPress {
     pub button: DialpadButton,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct Adjustment {
     pub kind: AdjustmentKind,
     /// Signed number of detents/steps.
     pub delta: i32,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct PageNav {
     pub direction: PageDirection,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct HookEvent {
     /// Claude Code hook name, e.g. "UserPromptSubmit", "Notification".
     pub hook: String,
@@ -254,7 +254,7 @@ pub struct HookEvent {
     pub payload: serde_json::Value,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct Notice {
     pub message: String,
 }
@@ -263,7 +263,7 @@ pub struct Notice {
 // Render model (daemon → device)
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct RenderModel {
     pub agent_state: AgentState,
     pub armed: Option<ArmedPrompt>,
@@ -274,7 +274,7 @@ pub struct RenderModel {
     pub hooks_mode: HooksMode,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct ArmedPrompt {
     pub prompt_id: String,
     pub label: String,
@@ -284,13 +284,13 @@ pub struct ArmedPrompt {
     pub command: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct KeypadRender {
     /// What to show on each of the 9 LCD keys.
     pub slots: Vec<KeypadSlotRender>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct KeypadSlotRender {
     pub slot: u8,
     pub prompt_id: String,
@@ -304,7 +304,7 @@ pub struct KeypadSlotRender {
 // VS Code commands
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct VscodeCommand {
     pub kind: VscodeCommandKind,
     pub target: TerminalTarget,
@@ -363,13 +363,13 @@ impl VscodeCommand {
 ///
 /// Claude Code expects `hookSpecificOutput.hookEventName = "PreToolUse"` with
 /// `permissionDecision` ∈ {"allow", "deny", "ask"}.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct PreToolUseDecisionOutput {
     #[serde(rename = "hookSpecificOutput")]
     pub hook_specific_output: PreToolUseHookOutput,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct PreToolUseHookOutput {
     #[serde(rename = "hookEventName")]
     pub hook_event_name: String,
@@ -408,13 +408,13 @@ impl PreToolUseDecisionOutput {
 }
 
 /// Spec-compliant output for UserPromptSubmit hooks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct UserPromptSubmitOutput {
     #[serde(rename = "hookSpecificOutput")]
     pub hook_specific_output: UserPromptSubmitHookOutput,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct UserPromptSubmitHookOutput {
     #[serde(rename = "hookEventName")]
     pub hook_event_name: String,
@@ -438,7 +438,7 @@ impl UserPromptSubmitOutput {
 // VS Code terminal telemetry
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct TerminalsSnapshot {
     /// Ordered list of terminals as reported by VS Code.
     pub terminals: Vec<TerminalInfo>,
@@ -446,7 +446,7 @@ pub struct TerminalsSnapshot {
     pub active_index: usize,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct TerminalInfo {
     pub index: usize,
     pub name: String,
