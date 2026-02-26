@@ -2,11 +2,10 @@
   "hooks": {
     "SessionStart": [
       {
-        "matcher": "startup",
         "hooks": [
           {
             "type": "command",
-            "command": "runbook-hooks SessionStart startup"
+            "command": "runbook-hooks SessionStart"
           }
         ]
       }
@@ -17,8 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "runbook-hooks UserPromptSubmit",
-            "async": true
+            "command": "runbook-hooks UserPromptSubmit"
           }
         ]
       }
@@ -31,6 +29,17 @@
           {
             "type": "command",
             "command": "runbook-hooks PreToolUse Bash --deny-destructive-bash"
+          }
+        ]
+      }
+    ],
+
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "runbook-hooks PermissionRequest"
           }
         ]
       }
@@ -51,8 +60,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "runbook-hooks Notification idle_prompt",
-            "async": true
+            "command": "runbook-hooks Notification idle_prompt"
           }
         ]
       },
@@ -67,13 +75,36 @@
       }
     ],
 
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "runbook-hooks PostToolUse",
+            "async": true
+          }
+        ]
+      }
+    ],
+
+    "PostToolUseFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "runbook-hooks PostToolUseFailure",
+            "async": true
+          }
+        ]
+      }
+    ],
+
     "TaskCompleted": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "runbook-hooks TaskCompleted",
-            "async": true
+            "command": "runbook-hooks TaskCompleted"
           }
         ]
       }
@@ -84,8 +115,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "runbook-hooks Stop",
-            "async": true
+            "command": "runbook-hooks Stop"
           }
         ]
       }
@@ -96,8 +126,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "runbook-hooks SessionEnd",
-            "async": true
+            "command": "runbook-hooks SessionEnd"
           }
         ]
       }

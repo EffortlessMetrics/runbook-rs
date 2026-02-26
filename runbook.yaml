@@ -1,44 +1,80 @@
 # Runbook config v1 (sample)
 
-# Daemon settings
-# daemon:
-#   listen: "127.0.0.1:29381"
+version: 1
+
+daemon:
+  listen: "127.0.0.1:29381"
+
+tooling:
+  primary: claude_code
+  degraded_mode_label: "KEYSTROKE MODE"
 
 keypad:
   initial_page: 0
   pages:
     - name: core
       slots:
-        - id: prep_pr
-          label: PREP PR
-          sublabel: receipts
-          command: "/runbook:prep-pr"
-        - id: break_task
-          label: BREAK TASK
-          sublabel: plan
-          command: "/runbook:break-task"
-        - id: run_gates
-          label: RUN GATES
-          sublabel: tests
-          command: "/runbook:run-gates"
-        - id: write_receipt
-          label: RECEIPT
-          sublabel: summary
-          command: "/runbook:write-receipt"
-        - id: open_pr
-          label: PR
-          sublabel: jump
-          command: "/runbook:open-pr"
-        - id: open_issue
-          label: ISSUE
-          sublabel: jump
-          command: "/runbook:open-issue"
-        - id: noop_7
-          label: —
-          command: ""
-        - id: noop_8
-          label: —
-          command: ""
-        - id: noop_9
-          label: —
-          command: ""
+        - prompt_id: prep_pr
+        - prompt_id: break_task
+        - prompt_id: run_gates
+        - prompt_id: write_receipt
+        - {}
+        - {}
+        - gate: pr
+        - gate: issue
+        - gate: receipt
+
+prompts:
+  prep_pr:
+    label: "PREP PR"
+    sublabel: "receipts"
+    claude_command: "/runbook:prep-pr"
+    fallback_text: "Prep a PR. Include summary, risks, test plan."
+  break_task:
+    label: "BREAK TASK"
+    sublabel: "plan"
+    claude_command: "/runbook:break-task"
+    fallback_text: "Break the task into steps and list acceptance criteria."
+  run_gates:
+    label: "RUN GATES"
+    sublabel: "tests"
+    claude_command: "/runbook:run-gates"
+    fallback_text: "Run the quality gates."
+  write_receipt:
+    label: "RECEIPT"
+    sublabel: "summary"
+    claude_command: "/runbook:write-receipt"
+    fallback_text: "Write a session receipt."
+
+gates:
+  pr:
+    label: "PR"
+    sublabel: "jump"
+    action: open_pr
+  issue:
+    label: "ISSUE"
+    sublabel: "jump"
+    action: open_issue
+  receipt:
+    label: "RECEIPT"
+    sublabel: "summary"
+    action: open_receipt
+
+policy:
+  pre_tool_use:
+    enabled: true
+    bash:
+      deny:
+        - "rm -rf"
+        - "git push --force"
+        - "git reset --hard"
+        - "mkfs"
+        - "dd if="
+        - "shutdown"
+        - "reboot"
+      allow:
+        - "git status"
+        - "rg "
+        - "cargo test"
+        - "cargo build"
+        - "cargo clippy"

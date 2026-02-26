@@ -1,0 +1,16 @@
+{
+  "type": "terminals_snapshot",
+  "terminals": [
+    {
+      "index": 0,
+      "name": "Claude (prep-pr)",
+      "session_tag": "tag-001"
+    },
+    {
+      "index": 1,
+      "name": "zsh",
+      "session_tag": null
+    }
+  ],
+  "active_index": 0
+}

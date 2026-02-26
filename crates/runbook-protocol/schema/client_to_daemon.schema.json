@@ -1,0 +1,255 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ClientToDaemon",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "client",
+        "protocol",
+        "type",
+        "version"
+      ],
+      "properties": {
+        "capabilities": {
+          "description": "Optional capability hints from the client (e.g. [\"hooks\", \"terminals\"]).",
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "client": {
+          "$ref": "#/definitions/ClientKind"
+        },
+        "protocol": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "hello"
+          ]
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "prompt_id",
+        "type"
+      ],
+      "properties": {
+        "prompt_id": {
+          "description": "Prompt ID from the current page slot (not a raw index).",
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "keypad_press"
+          ]
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "button",
+        "type"
+      ],
+      "properties": {
+        "button": {
+          "$ref": "#/definitions/DialpadButton"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "dialpad_button_press"
+          ]
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "delta",
+        "kind",
+        "type"
+      ],
+      "properties": {
+        "delta": {
+          "description": "Signed number of detents/steps.",
+          "type": "integer",
+          "format": "int32"
+        },
+        "kind": {
+          "$ref": "#/definitions/AdjustmentKind"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "adjustment"
+          ]
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "direction",
+        "type"
+      ],
+      "properties": {
+        "direction": {
+          "$ref": "#/definitions/PageDirection"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "page_nav"
+          ]
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "hook",
+        "type"
+      ],
+      "properties": {
+        "hook": {
+          "description": "Claude Code hook name, e.g. \"UserPromptSubmit\", \"Notification\".",
+          "type": "string"
+        },
+        "matcher": {
+          "description": "Optional matcher (e.g. notification matcher like \"permission_prompt\").",
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "payload": {
+          "description": "Raw hook JSON payload (opaque to daemon v1; specific fields parsed as needed).",
+          "default": null
+        },
+        "session_id": {
+          "description": "Session ID from Claude Code (extracted from hook input's `session_id`).",
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "session_tag": {
+          "description": "Session tag from env var `RUNBOOK_SESSION_TAG` (launcher-assigned).",
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "hook_event"
+          ]
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "active_index",
+        "terminals",
+        "type"
+      ],
+      "properties": {
+        "active_index": {
+          "description": "Index of the currently active terminal.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "terminals": {
+          "description": "Ordered list of terminals as reported by VS Code.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TerminalInfo"
+          }
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "terminals_snapshot"
+          ]
+        }
+      }
+    }
+  ],
+  "definitions": {
+    "AdjustmentKind": {
+      "type": "string",
+      "enum": [
+        "dial",
+        "roller"
+      ]
+    },
+    "ClientKind": {
+      "type": "string",
+      "enum": [
+        "logi",
+        "vscode",
+        "hooks"
+      ]
+    },
+    "DialpadButton": {
+      "type": "string",
+      "enum": [
+        "ctrl_c",
+        "export",
+        "esc",
+        "enter"
+      ]
+    },
+    "PageDirection": {
+      "type": "string",
+      "enum": [
+        "prev",
+        "next"
+      ]
+    },
+    "TerminalInfo": {
+      "type": "object",
+      "required": [
+        "index",
+        "name"
+      ],
+      "properties": {
+        "index": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "name": {
+          "type": "string"
+        },
+        "session_tag": {
+          "description": "Session tag if this terminal was launched via \"Start Claude Session\".",
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+    Checking runbook-protocol v0.1.0 (H:\Code\Runbook\runbook-rs\crates\runbook-protocol)
+error[E0412]: cannot find type `RootSchema` in `schemars::schema`
+  --> crates\runbook-protocol\src\bin\gen_schema.rs:15:68
+   |
+15 |     let write_schema = |filename: &str, schema: &schemars::schema::RootSchema| {
+   |                                                                    ^^^^^^^^^^ not found in `schemars::schema`
+
+error[E0603]: module `schema` is private
+  --> crates\runbook-protocol\src\bin\gen_schema.rs:15:60
+   |
+15 |     let write_schema = |filename: &str, schema: &schemars::schema::RootSchema| {
+   |                                                            ^^^^^^ private module
+   |
+note: the module `schema` is defined here
+  --> C:\Users\steven\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\schemars-1.2.1\src\lib.rs:20:1
+   |
+20 | mod schema;
+   | ^^^^^^^^^^
+
+Some errors have detailed explanations: E0412, E0603.
+For more information about an error, try `rustc --explain E0412`.
+error: could not compile `runbook-protocol` (bin "gen_schema") due to 2 previous errors
