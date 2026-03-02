@@ -5,10 +5,10 @@
 //! multi-session honesty, and gating.
 
 use cucumber::{given, then, when, World as _};
-use runbookd::config::RunbookConfig;
+use runbook_config::RunbookConfig;
+use runbook_protocol::{AgentState, DialpadButton, HooksMode, TerminalInfo, TerminalsSnapshot};
 use runbookd::reducer::{self, Event, SideEffect};
 use runbookd::state::DaemonState;
-use runbook_protocol::{AgentState, DialpadButton, HooksMode, TerminalInfo, TerminalsSnapshot};
 
 // ---------------------------------------------------------------------------
 // World — the BDD test state container
@@ -63,7 +63,10 @@ impl DaemonWorld {
 
     /// No VscodeCommand side effects at all.
     fn no_vscode_commands(&self) -> bool {
-        !self.effects.iter().any(|e| matches!(e, SideEffect::SendVscodeCommand(_)))
+        !self
+            .effects
+            .iter()
+            .any(|e| matches!(e, SideEffect::SendVscodeCommand(_)))
     }
 }
 
@@ -202,12 +205,7 @@ async fn hook_with_tag(
 }
 
 #[when(expr = "hook {string} arrives for session {string} with tag {string}")]
-async fn hook_no_matcher_with_tag(
-    w: &mut DaemonWorld,
-    hook: String,
-    session: String,
-    tag: String,
-) {
+async fn hook_no_matcher_with_tag(w: &mut DaemonWorld, hook: String, session: String, tag: String) {
     w.effects.clear();
     w.apply(Event::HookEvent {
         hook,
@@ -220,9 +218,7 @@ async fn hook_no_matcher_with_tag(
 #[when(expr = "terminal {int} has tag {string}")]
 async fn terminal_has_tag(w: &mut DaemonWorld, index: usize, tag: String) {
     // Inject terminal info into daemon state.
-    w.state
-        .terminal_tag_map
-        .insert(index, tag.clone());
+    w.state.terminal_tag_map.insert(index, tag.clone());
 
     // Ensure we have enough terminal entries.
     while w.state.terminals.len() <= index {
@@ -305,7 +301,11 @@ async fn literal_enter_sent(w: &mut DaemonWorld) {
 async fn no_prompt_sent(w: &mut DaemonWorld) {
     let has_prompt = w.effects.iter().any(|e| match e {
         SideEffect::SendVscodeCommand(cmd) => {
-            let text = cmd.payload.get("text").and_then(|v| v.as_str()).unwrap_or("");
+            let text = cmd
+                .payload
+                .get("text")
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
             text.starts_with("/runbook:")
         }
         _ => false,
