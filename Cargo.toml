@@ -3,7 +3,7 @@ resolver = "2"
 members = [
   "crates/runbook-protocol",
   "crates/runbookd",
-  "crates/runbook-hooks",
+  "crates/runbook-hooks", "crates/runbook-hook-state",
 ]
 
 [workspace.package]
