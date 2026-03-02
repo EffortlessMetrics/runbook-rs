@@ -2,6 +2,9 @@ use std::collections::HashMap;
 use std::time::Instant;
 
 use runbook_protocol::{AgentState, HooksMode, TerminalInfo};
+use runbook_session_resolver::{
+    resolve_current_agent_state, resolve_selected_session_id, SessionResolutionInput,
+};
 
 /// Central daemon state. Owned by the daemon task behind a Mutex.
 #[derive(Debug)]
@@ -76,40 +79,32 @@ impl DaemonState {
     /// - **1 session** → that session's state
     /// - **>1 sessions** → try to resolve via terminal↔session correlation, else `Unknown`
     pub fn current_agent_state(&self) -> AgentState {
-        if self.hooks_mode == HooksMode::Absent {
-            return AgentState::Unknown;
-        }
+        let session_states = self
+            .sessions
+            .iter()
+            .map(|(session_id, session)| (session_id.clone(), session.agent_state))
+            .collect();
 
-        match self.sessions.len() {
-            0 => self.last_ended_state.unwrap_or(AgentState::Unknown),
-            1 => self
-                .sessions
-                .values()
-                .next()
-                .map(|s| s.agent_state)
-                .unwrap_or(AgentState::Unknown),
-            _ => {
-                // Multi-session: try to resolve via terminal selection.
-                if let Some(session_id) = self.selected_session_id() {
-                    self.sessions
-                        .get(&session_id)
-                        .map(|s| s.agent_state)
-                        .unwrap_or(AgentState::Unknown)
-                } else {
-                    // Can't correlate terminal → session. Degrade.
-                    AgentState::Unknown
-                }
-            }
-        }
+        resolve_current_agent_state(SessionResolutionInput {
+            hooks_mode: self.hooks_mode,
+            session_states: &session_states,
+            last_ended_state: self.last_ended_state,
+            selected_terminal_index: self.selected_terminal_index,
+            terminal_tag_map: &self.terminal_tag_map,
+            session_tag_map: &self.session_tag_map,
+        })
     }
 
     /// Attempt to resolve the currently selected terminal to a session_id.
     ///
     /// Path: selected_terminal_index → terminal_tag_map → session_tag → session_tag_map → session_id
     pub fn selected_session_id(&self) -> Option<String> {
-        let tag = self.terminal_tag_map.get(&self.selected_terminal_index)?;
-        let session_id = self.session_tag_map.get(tag)?;
-        Some(session_id.clone())
+        resolve_selected_session_id(
+            self.selected_terminal_index,
+            &self.terminal_tag_map,
+            &self.session_tag_map,
+        )
+        .map(str::to_string)
     }
 
     /// Ensure a session entry exists and return a mutable reference.
