@@ -15,3 +15,4 @@ runbook-protocol = { path = "../runbook-protocol" }
 # HTTP client for WebSocket fallback (optional)
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "blocking"] }
 
+runbook-bash-policy = { path = "../runbook-bash-policy" }
