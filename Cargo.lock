@@ -1415,6 +1415,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "runbook-config"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "runbook-protocol",
+ "serde",
+ "serde_yaml",
+]
+
+[[package]]
 name = "runbook-hooks"
 version = "0.1.0"
 dependencies = [
@@ -1444,8 +1454,8 @@ dependencies = [
  "clap",
  "cucumber",
  "futures",
+ "runbook-config",
  "runbook-protocol",
- "serde",
  "serde_json",
  "serde_yaml",
  "tokio",

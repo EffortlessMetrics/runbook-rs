@@ -1,0 +1,15 @@
+[package]
+name = "runbook-config"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Configuration schema and validation for runbook.yaml."
+
+[dependencies]
+anyhow = "1"
+serde = { version = "1", features = ["derive"] }
+runbook-protocol = { path = "../runbook-protocol" }
+
+[dev-dependencies]
+serde_yaml = "0.9"

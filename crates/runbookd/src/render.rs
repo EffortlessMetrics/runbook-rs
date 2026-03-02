@@ -2,8 +2,8 @@
 
 use runbook_protocol::{ArmedPrompt, KeypadRender, KeypadSlotRender, RenderModel};
 
-use crate::config::RunbookConfig;
 use crate::state::DaemonState;
+use runbook_config::RunbookConfig;
 
 /// Build a `RenderModel` snapshot from the current state and config.
 pub fn build_render_model(state: &DaemonState, config: &RunbookConfig) -> RenderModel {
@@ -49,10 +49,7 @@ pub fn build_render_model(state: &DaemonState, config: &RunbookConfig) -> Render
                 prompt_id: pid.clone(),
                 label: p.label.clone(),
                 style: config.arm_style_for(pid),
-                command: p
-                    .effective_command(is_claude)
-                    .unwrap_or("")
-                    .to_string(),
+                command: p.effective_command(is_claude).unwrap_or("").to_string(),
             }
         })
     });
