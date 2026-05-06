@@ -5,10 +5,10 @@
 //! multi-session honesty, and gating.
 
 use cucumber::{given, then, when, World as _};
+use runbook_protocol::{DialpadButton, TerminalInfo};
 use runbookd::config::RunbookConfig;
 use runbookd::reducer::{self, Event, SideEffect};
 use runbookd::state::DaemonState;
-use runbook_protocol::{AgentState, DialpadButton, HooksMode, TerminalInfo, TerminalsSnapshot};
 
 // ---------------------------------------------------------------------------
 // World — the BDD test state container
@@ -43,7 +43,10 @@ impl DaemonWorld {
         self.effects.iter().any(|e| match e {
             SideEffect::SendVscodeCommand(cmd) => {
                 let payload_text = cmd.payload.get("text").and_then(|v| v.as_str());
-                let payload_nl = cmd.payload.get("add_newline").and_then(|v| v.as_bool());
+                let payload_nl = cmd
+                    .payload
+                    .get("add_newline")
+                    .and_then(serde_json::Value::as_bool);
                 payload_text == Some(text) && payload_nl == Some(newline)
             }
             _ => false,
@@ -63,7 +66,10 @@ impl DaemonWorld {
 
     /// No VscodeCommand side effects at all.
     fn no_vscode_commands(&self) -> bool {
-        !self.effects.iter().any(|e| matches!(e, SideEffect::SendVscodeCommand(_)))
+        !self
+            .effects
+            .iter()
+            .any(|e| matches!(e, SideEffect::SendVscodeCommand(_)))
     }
 }
 
@@ -101,7 +107,16 @@ gates:
     sublabel: "jump"
     action: open_pr
 "#;
-    serde_yaml::from_str(yaml).unwrap()
+    serde_yaml::from_str(yaml).unwrap_or_default()
+}
+
+fn json_string<T>(value: T) -> Option<String>
+where
+    T: serde::Serialize,
+{
+    serde_json::to_value(value)
+        .ok()
+        .and_then(|json| json.as_str().map(std::string::ToString::to_string))
 }
 
 // ===========================================================================
@@ -202,12 +217,7 @@ async fn hook_with_tag(
 }
 
 #[when(expr = "hook {string} arrives for session {string} with tag {string}")]
-async fn hook_no_matcher_with_tag(
-    w: &mut DaemonWorld,
-    hook: String,
-    session: String,
-    tag: String,
-) {
+async fn hook_no_matcher_with_tag(w: &mut DaemonWorld, hook: String, session: String, tag: String) {
     w.effects.clear();
     w.apply(Event::HookEvent {
         hook,
@@ -220,9 +230,7 @@ async fn hook_no_matcher_with_tag(
 #[when(expr = "terminal {int} has tag {string}")]
 async fn terminal_has_tag(w: &mut DaemonWorld, index: usize, tag: String) {
     // Inject terminal info into daemon state.
-    w.state
-        .terminal_tag_map
-        .insert(index, tag.clone());
+    w.state.terminal_tag_map.insert(index, tag.clone());
 
     // Ensure we have enough terminal entries.
     while w.state.terminals.len() <= index {
@@ -232,7 +240,9 @@ async fn terminal_has_tag(w: &mut DaemonWorld, index: usize, tag: String) {
             session_tag: None,
         });
     }
-    w.state.terminals[index].session_tag = Some(tag);
+    if let Some(terminal) = w.state.terminals.get_mut(index) {
+        terminal.session_tag = Some(tag);
+    }
 }
 
 #[when(expr = "terminal {int} is selected")]
@@ -305,7 +315,11 @@ async fn literal_enter_sent(w: &mut DaemonWorld) {
 async fn no_prompt_sent(w: &mut DaemonWorld) {
     let has_prompt = w.effects.iter().any(|e| match e {
         SideEffect::SendVscodeCommand(cmd) => {
-            let text = cmd.payload.get("text").and_then(|v| v.as_str()).unwrap_or("");
+            let text = cmd
+                .payload
+                .get("text")
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
             text.starts_with("/runbook:")
         }
         _ => false,
@@ -347,11 +361,7 @@ async fn literal_ctrl_c_sent(w: &mut DaemonWorld) {
 #[then(expr = "the agent state is {string}")]
 async fn agent_state_is(w: &mut DaemonWorld, expected: String) {
     let actual = w.state.current_agent_state();
-    let actual_str = serde_json::to_value(&actual)
-        .unwrap()
-        .as_str()
-        .unwrap()
-        .to_string();
+    let actual_str = json_string(actual).unwrap_or_else(|| "<invalid>".to_string());
     assert_eq!(
         actual_str, expected,
         "expected agent state '{expected}', got '{actual_str}'"
@@ -360,12 +370,8 @@ async fn agent_state_is(w: &mut DaemonWorld, expected: String) {
 
 #[then(expr = "hooks mode is {string}")]
 async fn hooks_mode_is(w: &mut DaemonWorld, expected: String) {
-    let actual = &w.state.hooks_mode;
-    let actual_str = serde_json::to_value(actual)
-        .unwrap()
-        .as_str()
-        .unwrap()
-        .to_string();
+    let actual = w.state.hooks_mode;
+    let actual_str = json_string(actual).unwrap_or_else(|| "<invalid>".to_string());
     assert_eq!(
         actual_str, expected,
         "expected hooks mode '{expected}', got '{actual_str}'"
@@ -383,12 +389,11 @@ async fn no_sessions(w: &mut DaemonWorld) {
 
 #[then(expr = "the last ended state is {string}")]
 async fn last_ended_state(w: &mut DaemonWorld, expected: String) {
-    let actual = w.state.last_ended_state.expect("no last_ended_state");
-    let actual_str = serde_json::to_value(&actual)
-        .unwrap()
-        .as_str()
-        .unwrap()
-        .to_string();
+    let actual_str = w
+        .state
+        .last_ended_state
+        .and_then(json_string)
+        .unwrap_or_else(|| "<missing>".to_string());
     assert_eq!(
         actual_str, expected,
         "expected last ended state '{expected}', got '{actual_str}'"
@@ -421,8 +426,7 @@ async fn session_tag_maps_to(w: &mut DaemonWorld, tag: String, session: String) 
     assert_eq!(
         mapped,
         Some(&session),
-        "expected tag '{tag}' → session '{session}', got {:?}",
-        mapped
+        "expected tag '{tag}' → session '{session}', got {mapped:?}"
     );
 }
 

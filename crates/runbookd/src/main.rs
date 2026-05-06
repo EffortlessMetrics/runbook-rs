@@ -12,18 +12,13 @@ use tokio::sync::{broadcast, Mutex};
 use tracing::{error, info, warn};
 
 use runbook_protocol::{
-    ClientKind, ClientToDaemon, DaemonToClient, HelloAck, HookEvent, Notice,
-    PROTOCOL_VERSION,
+    ClientKind, ClientToDaemon, DaemonToClient, HelloAck, HookEvent, Notice, PROTOCOL_VERSION,
 };
 
-mod config;
-mod reducer;
-mod render;
-mod state;
-
-use config::RunbookConfig;
-use reducer::{ClientKindTag, Event, SideEffect};
-use state::DaemonState;
+use runbookd::config::RunbookConfig;
+use runbookd::reducer::{self, ClientKindTag, Event, SideEffect};
+use runbookd::render;
+use runbookd::state::DaemonState;
 
 #[derive(Debug, Parser)]
 #[command(name = "runbookd", about = "Runbook daemon")]
@@ -98,10 +93,7 @@ async fn ws_handler(ws: WebSocketUpgrade, State(app): State<App>) -> impl IntoRe
     ws.on_upgrade(move |socket| handle_socket(app, socket))
 }
 
-async fn hook_handler(
-    State(app): State<App>,
-    Json(ev): Json<HookEvent>,
-) -> impl IntoResponse {
+async fn hook_handler(State(app): State<App>, Json(ev): Json<HookEvent>) -> impl IntoResponse {
     app.apply_event(Event::HookEvent {
         hook: ev.hook,
         matcher: ev.matcher,
@@ -127,16 +119,21 @@ async fn handle_socket(app: App, socket: axum::extract::ws::WebSocket) {
 
     // Send hello proactively.
     {
-        let mut tx = ws_tx.lock().await;
-        let _ = tx
-            .send(axum::extract::ws::Message::Text(
-                serde_json::to_string(&DaemonToClient::Hello(HelloAck {
-                    protocol: PROTOCOL_VERSION,
-                    daemon_version: env!("CARGO_PKG_VERSION").to_string(),
-                }))
-                .unwrap(),
-            ))
-            .await;
+        let hello = DaemonToClient::Hello(HelloAck {
+            protocol: PROTOCOL_VERSION,
+            daemon_version: env!("CARGO_PKG_VERSION").to_string(),
+        });
+        match serde_json::to_string(&hello) {
+            Ok(text) => {
+                let mut tx = ws_tx.lock().await;
+                if let Err(error) = tx.send(axum::extract::ws::Message::Text(text)).await {
+                    warn!("failed to send websocket hello: {error}");
+                }
+            }
+            Err(error) => {
+                error!("failed to serialize websocket hello: {error}");
+            }
+        }
     }
 
     // Track which client kind this is for disconnect handling.
@@ -216,12 +213,14 @@ impl App {
                     self.apply_event(Event::ClientConnected { kind: k }).await;
                 }
 
-                let _ = self.tx.send(DaemonToClient::Notice(Notice {
+                if let Err(error) = self.tx.send(DaemonToClient::Notice(Notice {
                     message: format!(
                         "client connected: {:?} v{} (protocol {})",
                         hello.client, hello.version, hello.protocol
                     ),
-                }));
+                })) {
+                    warn!("no clients to receive notice: {error}");
+                }
 
                 // Send current render state.
                 self.broadcast_render().await;
@@ -280,7 +279,9 @@ impl App {
             // Gates dispatch immediately (they're navigation, not prompts).
             info!(gate_id = id, action = %gate.action, "gate triggered");
             let cmd = runbook_protocol::VscodeCommand::open_uri(&gate.action);
-            let _ = self.tx.send(DaemonToClient::VscodeCommand(cmd));
+            if let Err(error) = self.tx.send(DaemonToClient::VscodeCommand(cmd)) {
+                warn!("no clients to receive gate command: {error}");
+            }
             true
         } else {
             false
@@ -312,6 +313,8 @@ impl App {
         let state = self.state.lock().await;
         let model = render::build_render_model(&state, &self.config);
         drop(state);
-        let _ = self.tx.send(DaemonToClient::Render(model));
+        if let Err(error) = self.tx.send(DaemonToClient::Render(model)) {
+            warn!("no clients to receive render: {error}");
+        }
     }
 }

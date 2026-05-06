@@ -9,10 +9,13 @@ use crate::state::DaemonState;
 pub fn build_render_model(state: &DaemonState, config: &RunbookConfig) -> RenderModel {
     let page_count = config.keypad.pages.len();
     let page_index = state.page.min(page_count.saturating_sub(1));
-    let page_cfg = &config.keypad.pages[page_index];
+    let slots_source = config
+        .keypad
+        .pages
+        .get(page_index)
+        .map_or(&[][..], |page| page.slots.as_slice());
 
-    let slots: Vec<KeypadSlotRender> = page_cfg
-        .slots
+    let slots: Vec<KeypadSlotRender> = slots_source
         .iter()
         .enumerate()
         .map(|(i, slot)| {
@@ -33,7 +36,7 @@ pub fn build_render_model(state: &DaemonState, config: &RunbookConfig) -> Render
             };
 
             KeypadSlotRender {
-                slot: i as u8,
+                slot: u8::try_from(i).unwrap_or(u8::MAX),
                 prompt_id,
                 label,
                 sublabel,
@@ -49,10 +52,7 @@ pub fn build_render_model(state: &DaemonState, config: &RunbookConfig) -> Render
                 prompt_id: pid.clone(),
                 label: p.label.clone(),
                 style: config.arm_style_for(pid),
-                command: p
-                    .effective_command(is_claude)
-                    .unwrap_or("")
-                    .to_string(),
+                command: p.effective_command(is_claude).unwrap_or("").to_string(),
             }
         })
     });
@@ -98,7 +98,7 @@ gates:
     sublabel: "jump"
     action: open_pr
 "#;
-        serde_yaml::from_str(yaml).unwrap()
+        serde_yaml::from_str(yaml).unwrap_or_default()
     }
 
     #[test]
@@ -108,9 +108,22 @@ gates:
         let model = build_render_model(&state, &config);
 
         assert_eq!(model.keypad.slots.len(), 9);
-        assert_eq!(model.keypad.slots[0].label, "PREP PR");
-        assert_eq!(model.keypad.slots[0].sublabel.as_deref(), Some("receipts"));
-        assert_eq!(model.keypad.slots[8].label, "PR");
+        assert_eq!(
+            model.keypad.slots.first().map(|slot| slot.label.as_str()),
+            Some("PREP PR")
+        );
+        assert_eq!(
+            model
+                .keypad
+                .slots
+                .first()
+                .and_then(|slot| slot.sublabel.as_deref()),
+            Some("receipts")
+        );
+        assert_eq!(
+            model.keypad.slots.get(8).map(|slot| slot.label.as_str()),
+            Some("PR")
+        );
     }
 
     #[test]
@@ -120,9 +133,12 @@ gates:
         state.armed = Some("prep_pr".to_string());
 
         let model = build_render_model(&state, &config);
-        assert!(model.keypad.slots[0].armed);
+        assert!(model.keypad.slots.first().is_some_and(|slot| slot.armed));
         assert!(model.armed.is_some());
-        assert_eq!(model.armed.as_ref().unwrap().prompt_id, "prep_pr");
+        assert_eq!(
+            model.armed.as_ref().map(|armed| armed.prompt_id.as_str()),
+            Some("prep_pr")
+        );
     }
 
     #[test]

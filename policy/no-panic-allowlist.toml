@@ -1,0 +1,446 @@
+schema_version = "0.3"
+
+# Existing panic-family call sites are preserved as explicit, reviewed debt.
+# Identity is path + family + selector; last_seen is advisory only.
+
+[[allow]]
+path = "crates/runbook-protocol/src/lib.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "platform"
+explanation = "Existing call site captured during strict policy bootstrap; migrate to panic-free Result/assertion flow."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "round_trip_client_to_daemon"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 494
+column = 50
+
+[[allow]]
+path = "crates/runbook-protocol/src/lib.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "platform"
+explanation = "Existing call site captured during strict policy bootstrap; migrate to panic-free Result/assertion flow."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "round_trip_client_to_daemon"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 495
+column = 69
+
+[[allow]]
+path = "crates/runbook-protocol/src/lib.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "platform"
+explanation = "Existing call site captured during strict policy bootstrap; migrate to panic-free Result/assertion flow."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "round_trip_client_to_daemon"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 496
+column = 55
+
+[[allow]]
+path = "crates/runbook-protocol/src/lib.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "platform"
+explanation = "Existing call site captured during strict policy bootstrap; migrate to panic-free Result/assertion flow."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "round_trip_daemon_to_client"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 535
+column = 50
+
+[[allow]]
+path = "crates/runbook-protocol/src/lib.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "platform"
+explanation = "Existing call site captured during strict policy bootstrap; migrate to panic-free Result/assertion flow."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "round_trip_daemon_to_client"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 536
+column = 69
+
+[[allow]]
+path = "crates/runbook-protocol/src/lib.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "platform"
+explanation = "Existing call site captured during strict policy bootstrap; migrate to panic-free Result/assertion flow."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "round_trip_daemon_to_client"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 537
+column = 55
+
+[[allow]]
+path = "crates/runbook-protocol/src/lib.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "platform"
+explanation = "Existing call site captured during strict policy bootstrap; migrate to panic-free Result/assertion flow."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "pre_tool_use_deny_output_matches_spec"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 545
+column = 54
+
+[[allow]]
+path = "crates/runbook-protocol/src/lib.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "platform"
+explanation = "Existing call site captured during strict policy bootstrap; migrate to panic-free Result/assertion flow."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "pre_tool_use_deny_output_matches_spec"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 546
+column = 63
+
+[[allow]]
+path = "crates/runbook-protocol/src/lib.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "platform"
+explanation = "Existing call site captured during strict policy bootstrap; migrate to panic-free Result/assertion flow."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "pre_tool_use_deny_output_matches_spec"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 553
+column = 13
+
+[[allow]]
+path = "crates/runbook-protocol/src/lib.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "platform"
+explanation = "Existing call site captured during strict policy bootstrap; migrate to panic-free Result/assertion flow."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "pre_tool_use_allow_output_matches_spec"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 560
+column = 47
+
+[[allow]]
+path = "crates/runbook-protocol/src/lib.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "platform"
+explanation = "Existing call site captured during strict policy bootstrap; migrate to panic-free Result/assertion flow."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "pre_tool_use_allow_output_matches_spec"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 561
+column = 63
+
+[[allow]]
+path = "crates/runbook-protocol/src/lib.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "platform"
+explanation = "Existing call site captured during strict policy bootstrap; migrate to panic-free Result/assertion flow."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "user_prompt_submit_output_matches_spec"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 569
+column = 47
+
+[[allow]]
+path = "crates/runbook-protocol/src/lib.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "platform"
+explanation = "Existing call site captured during strict policy bootstrap; migrate to panic-free Result/assertion flow."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "user_prompt_submit_output_matches_spec"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 570
+column = 63
+
+[[allow]]
+path = "crates/runbook-protocol/src/lib.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "platform"
+explanation = "Existing call site captured during strict policy bootstrap; migrate to panic-free Result/assertion flow."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "terminal_target_by_index_serializes"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 587
+column = 50
+
+[[allow]]
+path = "crates/runbook-protocol/src/lib.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "platform"
+explanation = "Existing call site captured during strict policy bootstrap; migrate to panic-free Result/assertion flow."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "terminal_target_by_index_serializes"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 588
+column = 65
+
+[[allow]]
+path = "crates/runbook-protocol/src/lib.rs"
+family = "panic"
+classification = "test_only"
+owner = "platform"
+explanation = "Existing call site captured during strict policy bootstrap; migrate to panic-free Result/assertion flow."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "macro_call"
+container = "fixture"
+callee = "panic"
+
+[allow.last_seen]
+line = 599
+column = 33
+
+[[allow]]
+path = "crates/runbook-protocol/src/lib.rs"
+family = "panic"
+classification = "test_only"
+owner = "platform"
+explanation = "Existing call site captured during strict policy bootstrap; migrate to panic-free Result/assertion flow."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "macro_call"
+container = "assert_fixture_roundtrip<T>"
+callee = "panic"
+
+[allow.last_seen]
+line = 610
+column = 33
+
+[[allow]]
+path = "crates/runbook-protocol/src/lib.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "platform"
+explanation = "Existing call site captured during strict policy bootstrap; migrate to panic-free Result/assertion flow."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "assert_fixture_roundtrip<T>"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 611
+column = 58
+
+[[allow]]
+path = "crates/runbook-protocol/src/lib.rs"
+family = "panic"
+classification = "test_only"
+owner = "platform"
+explanation = "Existing call site captured during strict policy bootstrap; migrate to panic-free Result/assertion flow."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "macro_call"
+container = "assert_fixture_roundtrip<T>"
+callee = "panic"
+
+[allow.last_seen]
+line = 613
+column = 33
+
+[[allow]]
+path = "crates/runbook-protocol/src/lib.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "platform"
+explanation = "Existing call site captured during strict policy bootstrap; migrate to panic-free Result/assertion flow."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "assert_fixture_roundtrip<T>"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 615
+column = 61
+
+[[allow]]
+path = "xtask/src/main.rs"
+family = "unwrap"
+classification = "production_debt"
+owner = "platform"
+explanation = "Existing call site captured during strict policy bootstrap; migrate to panic-free Result/assertion flow."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "panic_findings"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 552
+column = 15
+
+[[allow]]
+path = "xtask/src/main.rs"
+family = "expect"
+classification = "production_debt"
+owner = "platform"
+explanation = "Existing call site captured during strict policy bootstrap; migrate to panic-free Result/assertion flow."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "panic_findings"
+callee = "expect"
+
+[allow.last_seen]
+line = 553
+column = 15
+
+[[allow]]
+path = "xtask/src/main.rs"
+family = "panic"
+classification = "production_debt"
+owner = "platform"
+explanation = "Existing call site captured during strict policy bootstrap; migrate to panic-free Result/assertion flow."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "macro_call"
+container = "panic_findings"
+callee = "panic"
+
+[allow.last_seen]
+line = 554
+column = 15
+
+[[allow]]
+path = "xtask/src/main.rs"
+family = "todo"
+classification = "production_debt"
+owner = "platform"
+explanation = "Existing call site captured during strict policy bootstrap; migrate to panic-free Result/assertion flow."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "macro_call"
+container = "panic_findings"
+callee = "todo"
+
+[allow.last_seen]
+line = 555
+column = 15
+
+[[allow]]
+path = "xtask/src/main.rs"
+family = "unimplemented"
+classification = "production_debt"
+owner = "platform"
+explanation = "Existing call site captured during strict policy bootstrap; migrate to panic-free Result/assertion flow."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "macro_call"
+container = "panic_findings"
+callee = "unimplemented"
+
+[allow.last_seen]
+line = 557
+column = 18
+
+[[allow]]
+path = "xtask/src/main.rs"
+family = "unreachable"
+classification = "production_debt"
+owner = "platform"
+explanation = "Existing call site captured during strict policy bootstrap; migrate to panic-free Result/assertion flow."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "macro_call"
+container = "panic_findings"
+callee = "unreachable"
+
+[allow.last_seen]
+line = 562
+column = 15

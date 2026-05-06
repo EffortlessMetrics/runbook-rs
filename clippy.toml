@@ -1,0 +1,4 @@
+# Repo-local Clippy policy configuration.
+#
+# Keep this file for disallowed methods/types/macros and similar repo-specific
+# additions. Do not add test carveouts for unwrap/expect/panic/indexing/dbg.
