@@ -2,6 +2,7 @@
 name = "runbookd"
 version = "0.1.0"
 edition.workspace = true
+rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 description = "Runbook daemon: bridges Claude Code hooks, VS Code, and Logitech Actions plugins."
@@ -26,3 +27,6 @@ tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 [[test]]
 name = "bdd"
 harness = false
+
+[lints]
+workspace = true

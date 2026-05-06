@@ -1,0 +1,6 @@
+# Repo-local Clippy configuration.
+#
+# Keep this file for repository-specific disallowed-methods, disallowed-types,
+# disallowed-macros, and other domain policy that cannot live in Cargo.toml.
+# Do not add panic/test carveouts such as allow-unwrap-in-tests here; this
+# workspace policy is panic-free for production code and tests.

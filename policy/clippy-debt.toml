@@ -1,0 +1,8 @@
+schema = 1
+
+# Add temporary lint exceptions here instead of weakening Cargo.toml or clippy.toml.
+# Every debt entry must include lint, path, owner, reason, and expires.
+#
+# Example debt entries should use debt tables with lint, path, owner,
+# reason, and expires fields. Keep commented examples out of this machine-
+# readable file so lightweight policy checks do not confuse examples with debt.

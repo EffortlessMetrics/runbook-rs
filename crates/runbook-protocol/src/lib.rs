@@ -560,7 +560,10 @@ mod tests {
         let hso = &v["hookSpecificOutput"];
         assert_eq!(hso["hookEventName"], "PreToolUse");
         assert_eq!(hso["permissionDecision"], "deny");
-        assert!(hso["permissionDecisionReason"].as_str().unwrap().contains("rm -rf"));
+        assert!(hso["permissionDecisionReason"]
+            .as_str()
+            .unwrap()
+            .contains("rm -rf"));
     }
 
     #[test]
@@ -603,10 +606,7 @@ mod tests {
     // -----------------------------------------------------------------------
 
     fn fixture(name: &str) -> String {
-        let path = format!(
-            "{}/fixtures/{name}",
-            env!("CARGO_MANIFEST_DIR")
-        );
+        let path = format!("{}/fixtures/{name}", env!("CARGO_MANIFEST_DIR"));
         std::fs::read_to_string(&path)
             .unwrap_or_else(|e| panic!("failed to load fixture {name}: {e}"))
     }

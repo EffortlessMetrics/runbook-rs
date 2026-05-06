@@ -1,0 +1,82 @@
+schema_version = "1.0"
+
+[[allow]]
+glob = "docs/**/*.md"
+kind = "documentation"
+owner = "docs"
+reason = "Project documentation is maintained in Markdown."
+surface = "docs"
+classification = "docs"
+covered_by = ["cargo xtask check-lint-policy"]
+
+[[allow]]
+glob = "README.md"
+kind = "documentation"
+owner = "docs"
+reason = "Repository landing page is maintained in Markdown."
+surface = "docs"
+classification = "docs"
+covered_by = ["cargo xtask check-lint-policy"]
+
+[[allow]]
+glob = "runbook.yaml"
+kind = "configuration"
+owner = "runbook"
+reason = "Runbook sample/operator configuration is YAML by product contract."
+surface = "config"
+classification = "config"
+covered_by = ["cargo test --workspace"]
+
+[[allow]]
+glob = "crates/runbook-protocol/fixtures/*.json"
+kind = "fixture_input"
+owner = "protocol"
+reason = "Protocol contract fixtures are JSON because the wire protocol is JSON."
+surface = "fixtures"
+classification = "test"
+covered_by = ["cargo test --workspace"]
+
+[[allow]]
+glob = "crates/runbook-protocol/schema/*.json"
+kind = "generated_schema"
+owner = "protocol"
+reason = "Generated JSON Schema artifacts document the protocol contract."
+surface = "schema"
+classification = "generated"
+covered_by = ["cargo run -p runbook-protocol --bin gen_schema"]
+
+[[allow]]
+glob = "crates/runbookd/tests/features/*.feature"
+kind = "bdd_fixture"
+owner = "runbookd"
+reason = "Cucumber feature files specify daemon behavior scenarios."
+surface = "tests"
+classification = "test"
+covered_by = ["cargo test --workspace"]
+
+[[allow]]
+glob = "claude-plugin/**/*.md"
+kind = "agent_prompt"
+owner = "agent-plugin"
+reason = "Claude command prompts and skills are distributed as Markdown."
+surface = "agent"
+classification = "production"
+covered_by = ["cargo xtask check-lint-policy"]
+
+[[allow]]
+glob = "claude-plugin/**/*.json"
+kind = "agent_plugin_config"
+owner = "agent-plugin"
+reason = "Claude plugin hook metadata is JSON by plugin contract."
+surface = "agent"
+classification = "config"
+covered_by = ["cargo xtask check-lint-policy"]
+
+[[allow]]
+glob = "examples/*.sh"
+kind = "example_script"
+owner = "examples"
+reason = "Shell examples demonstrate hook simulation outside the Rust binary surface."
+surface = "examples"
+classification = "docs"
+covered_by = ["bash -n examples/simulate-hooks.sh"]
