@@ -99,19 +99,11 @@ impl Default for ToolingConfig {
 // Dial
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Default, Deserialize)]
 pub struct DialConfig {
     /// `os_scroll` (default) or `vscode_terminal_scroll`.
     #[serde(default)]
     pub mode: DialMode,
-}
-
-impl Default for DialConfig {
-    fn default() -> Self {
-        Self {
-            mode: DialMode::default(),
-        }
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -144,17 +136,12 @@ fn default_max_prefill_chars() -> usize {
     400
 }
 
-#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum EscWhenPending {
+    #[default]
     CancelOnly,
     CancelAndPassthrough,
-}
-
-impl Default for EscWhenPending {
-    fn default() -> Self {
-        Self::CancelOnly
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -278,6 +265,12 @@ pub struct BashPolicy {
 // ---------------------------------------------------------------------------
 
 impl RunbookConfig {
+    /// Validate cross-reference and keypad shape invariants.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the config has no pages, a page does not contain
+    /// exactly nine slots, or a slot references an unknown prompt or gate.
     pub fn validate(&self) -> anyhow::Result<()> {
         if self.keypad.pages.is_empty() {
             anyhow::bail!("keypad.pages must have at least 1 page");
@@ -336,6 +329,11 @@ impl RunbookConfig {
 
 #[cfg(test)]
 mod tests {
+    #![expect(
+        clippy::unwrap_used,
+        clippy::indexing_slicing,
+        reason = "existing config tests are tracked as panic-free migration debt"
+    )]
     use super::*;
 
     const SAMPLE_YAML: &str = r#"
@@ -435,10 +433,7 @@ policy:
     fn effective_command_claude_mode() {
         let cfg: RunbookConfig = serde_yaml::from_str(SAMPLE_YAML).unwrap();
         let prompt = &cfg.prompts["prep_pr"];
-        assert_eq!(
-            prompt.effective_command(true),
-            Some("/runbook:prep-pr")
-        );
+        assert_eq!(prompt.effective_command(true), Some("/runbook:prep-pr"));
     }
 
     #[test]

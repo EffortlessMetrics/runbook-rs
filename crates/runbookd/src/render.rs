@@ -9,10 +9,11 @@ use crate::state::DaemonState;
 pub fn build_render_model(state: &DaemonState, config: &RunbookConfig) -> RenderModel {
     let page_count = config.keypad.pages.len();
     let page_index = state.page.min(page_count.saturating_sub(1));
-    let page_cfg = &config.keypad.pages[page_index];
-
-    let slots: Vec<KeypadSlotRender> = page_cfg
-        .slots
+    let slots: Vec<KeypadSlotRender> = config
+        .keypad
+        .pages
+        .get(page_index)
+        .map_or([].as_slice(), |page| page.slots.as_slice())
         .iter()
         .enumerate()
         .map(|(i, slot)| {
@@ -33,7 +34,7 @@ pub fn build_render_model(state: &DaemonState, config: &RunbookConfig) -> Render
             };
 
             KeypadSlotRender {
-                slot: i as u8,
+                slot: u8::try_from(i).unwrap_or(u8::MAX),
                 prompt_id,
                 label,
                 sublabel,
@@ -49,10 +50,7 @@ pub fn build_render_model(state: &DaemonState, config: &RunbookConfig) -> Render
                 prompt_id: pid.clone(),
                 label: p.label.clone(),
                 style: config.arm_style_for(pid),
-                command: p
-                    .effective_command(is_claude)
-                    .unwrap_or("")
-                    .to_string(),
+                command: p.effective_command(is_claude).unwrap_or("").to_string(),
             }
         })
     });
@@ -69,6 +67,11 @@ pub fn build_render_model(state: &DaemonState, config: &RunbookConfig) -> Render
 
 #[cfg(test)]
 mod tests {
+    #![expect(
+        clippy::unwrap_used,
+        clippy::indexing_slicing,
+        reason = "existing render tests are tracked as panic-free migration debt"
+    )]
     use super::*;
     use crate::state::DaemonState;
 

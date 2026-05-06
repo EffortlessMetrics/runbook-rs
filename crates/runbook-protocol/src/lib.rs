@@ -25,10 +25,13 @@ pub enum ClientKind {
     Hooks,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, schemars::JsonSchema, PartialEq, Eq)]
+#[derive(
+    Debug, Clone, Copy, Default, Serialize, Deserialize, schemars::JsonSchema, PartialEq, Eq,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum AgentState {
     /// No telemetry (non-Claude tools, or hooks not installed).
+    #[default]
     Unknown,
     /// Claude Code is ready for the next prompt (idle_prompt).
     Idle,
@@ -48,12 +51,6 @@ pub enum AgentState {
     Blocked,
     /// Prompt dispatched in degraded mode (no hook confirmation available).
     Sent,
-}
-
-impl Default for AgentState {
-    fn default() -> Self {
-        Self::Unknown
-    }
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, schemars::JsonSchema, PartialEq, Eq)]
@@ -109,47 +106,38 @@ pub enum TerminalTarget {
     ByIndex(usize),
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, schemars::JsonSchema, PartialEq, Eq)]
+#[derive(
+    Debug, Clone, Copy, Default, Serialize, Deserialize, schemars::JsonSchema, PartialEq, Eq,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum HooksMode {
     /// No hook events ever received.
+    #[default]
     Absent,
     /// Hook events arriving normally.
     Active,
 }
 
-impl Default for HooksMode {
-    fn default() -> Self {
-        Self::Absent
-    }
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, schemars::JsonSchema, PartialEq, Eq)]
+#[derive(
+    Debug, Clone, Copy, Default, Serialize, Deserialize, schemars::JsonSchema, PartialEq, Eq,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum DialMode {
     /// Default: OS-level scroll (Logi profile built-in, no daemon involvement).
+    #[default]
     OsScroll,
     /// Route dial through daemon → VS Code terminal scroll.
     VscodeTerminalScroll,
 }
 
-impl Default for DialMode {
-    fn default() -> Self {
-        Self::OsScroll
-    }
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, schemars::JsonSchema, PartialEq, Eq)]
+#[derive(
+    Debug, Clone, Copy, Default, Serialize, Deserialize, schemars::JsonSchema, PartialEq, Eq,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum ArmStyle {
+    #[default]
     Queue,
     Prefill,
-}
-
-impl Default for ArmStyle {
-    fn default() -> Self {
-        Self::Queue
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -400,7 +388,7 @@ impl PreToolUseDecisionOutput {
             hook_specific_output: PreToolUseHookOutput {
                 hook_event_name: "PreToolUse".to_string(),
                 permission_decision: "allow".to_string(),
-                permission_decision_reason: reason.map(|s| s.to_string()),
+                permission_decision_reason: reason.map(std::string::ToString::to_string),
                 additional_context: None,
             },
         }
@@ -461,6 +449,17 @@ pub struct TerminalInfo {
 
 #[cfg(test)]
 mod tests {
+    #![expect(
+        clippy::unwrap_used,
+        clippy::panic,
+        clippy::indexing_slicing,
+        reason = "existing protocol fixture tests are tracked as panic-free migration debt"
+    )]
+    #![expect(
+        clippy::unwrap_used,
+        clippy::panic,
+        reason = "existing protocol fixture tests are tracked as panic-free migration debt"
+    )]
     use super::*;
 
     #[test]
@@ -560,7 +559,10 @@ mod tests {
         let hso = &v["hookSpecificOutput"];
         assert_eq!(hso["hookEventName"], "PreToolUse");
         assert_eq!(hso["permissionDecision"], "deny");
-        assert!(hso["permissionDecisionReason"].as_str().unwrap().contains("rm -rf"));
+        assert!(hso["permissionDecisionReason"]
+            .as_str()
+            .unwrap()
+            .contains("rm -rf"));
     }
 
     #[test]
@@ -603,10 +605,7 @@ mod tests {
     // -----------------------------------------------------------------------
 
     fn fixture(name: &str) -> String {
-        let path = format!(
-            "{}/fixtures/{name}",
-            env!("CARGO_MANIFEST_DIR")
-        );
+        let path = format!("{}/fixtures/{name}", env!("CARGO_MANIFEST_DIR"));
         std::fs::read_to_string(&path)
             .unwrap_or_else(|e| panic!("failed to load fixture {name}: {e}"))
     }

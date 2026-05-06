@@ -1,0 +1,5 @@
+# Runbook uses Cargo.toml for lint levels and reserves clippy.toml for
+# repo-specific disallowed methods, types, and macros.
+#
+# Do not add test carveouts such as allow-unwrap-in-tests, allow-expect-in-tests,
+# allow-panic-in-tests, allow-indexing-slicing-in-tests, or allow-dbg-in-tests.

@@ -1,16 +1,15 @@
 [package]
-name = "runbook-protocol"
+name = "xtask"
 version = "0.1.0"
 edition.workspace = true
+rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "Shared protocol types for Runbook (daemon <-> clients)."
+publish = false
 
 [dependencies]
-anyhow = "1"
-schemars = "0.8.21"
 serde = { version = "1", features = ["derive"] }
-serde_json = "1"
+toml = "0.8"
 
 [lints]
 workspace = true

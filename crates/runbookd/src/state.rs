@@ -114,9 +114,7 @@ impl DaemonState {
 
     /// Ensure a session entry exists and return a mutable reference.
     pub fn ensure_session(&mut self, session_id: &str) -> &mut SessionState {
-        self.sessions
-            .entry(session_id.to_string())
-            .or_insert_with(SessionState::new)
+        self.sessions.entry(session_id.to_string()).or_default()
     }
 
     /// Remove a session (on SessionEnd) and clean up related state.
@@ -146,6 +144,12 @@ pub struct SessionState {
     pub agent_state: AgentState,
     pub last_tool: Option<String>,
     pub started_at: Instant,
+}
+
+impl Default for SessionState {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl SessionState {

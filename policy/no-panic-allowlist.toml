@@ -1,0 +1,141 @@
+schema_version = "0.3"
+
+# Existing panic-family calls are preserved as reviewed migration debt while the
+# workspace moves to panic-free production and tests. Prefer removing entries by
+# converting tests to Result-returning helpers or by propagating errors.
+
+[[allow]]
+path = "crates/runbook-hooks/src/main.rs"
+family = "exit"
+classification = "cli_boundary"
+owner = "runbook/cli"
+explanation = "Claude Code hook protocol requires exit code 2 to block a tool call."
+expires = "2026-07-01"
+[allow.selector]
+kind = "function_call"
+container = "main"
+callee = "std::process::exit"
+receiver_fingerprint = "std::process::exit(2)"
+[allow.last_seen]
+line = 77
+column = 17
+
+[[allow]]
+path = "crates/runbook-protocol/src/lib.rs"
+family = "unwrap"
+classification = "migration_debt"
+owner = "runbook/policy"
+explanation = "Existing panic-family usage retained for first policy PR; remove by converting to Result-returning helpers or explicit error propagation."
+expires = "2026-07-01"
+[allow.selector]
+kind = "call"
+container = "lib"
+callee = "unwrap"
+[allow.last_seen]
+line = 506
+column = 1
+
+[[allow]]
+path = "crates/runbook-protocol/src/lib.rs"
+family = "panic"
+classification = "migration_debt"
+owner = "runbook/policy"
+explanation = "Existing panic-family usage retained for first policy PR; remove by converting to Result-returning helpers or explicit error propagation."
+expires = "2026-07-01"
+[allow.selector]
+kind = "call"
+container = "lib"
+callee = "panic"
+[allow.last_seen]
+line = 611
+column = 1
+
+[[allow]]
+path = "crates/runbookd/tests/bdd.rs"
+family = "unwrap"
+classification = "migration_debt"
+owner = "runbook/policy"
+explanation = "Existing panic-family usage retained for first policy PR; remove by converting to Result-returning helpers or explicit error propagation."
+expires = "2026-07-01"
+[allow.selector]
+kind = "call"
+container = "bdd"
+callee = "unwrap"
+[allow.last_seen]
+line = 104
+column = 1
+
+[[allow]]
+path = "crates/runbookd/tests/bdd.rs"
+family = "expect"
+classification = "migration_debt"
+owner = "runbook/policy"
+explanation = "Existing panic-family usage retained for first policy PR; remove by converting to Result-returning helpers or explicit error propagation."
+expires = "2026-07-01"
+[allow.selector]
+kind = "call"
+container = "bdd"
+callee = "expect"
+[allow.last_seen]
+line = 386
+column = 1
+
+[[allow]]
+path = "crates/runbookd/src/config.rs"
+family = "unwrap"
+classification = "migration_debt"
+owner = "runbook/policy"
+explanation = "Existing panic-family usage retained for first policy PR; remove by converting to Result-returning helpers or explicit error propagation."
+expires = "2026-07-01"
+[allow.selector]
+kind = "call"
+container = "config"
+callee = "unwrap"
+[allow.last_seen]
+line = 418
+column = 1
+
+[[allow]]
+path = "crates/runbookd/src/reducer.rs"
+family = "unwrap"
+classification = "migration_debt"
+owner = "runbook/policy"
+explanation = "Existing panic-family usage retained for first policy PR; remove by converting to Result-returning helpers or explicit error propagation."
+expires = "2026-07-01"
+[allow.selector]
+kind = "call"
+container = "reducer"
+callee = "unwrap"
+[allow.last_seen]
+line = 376
+column = 1
+
+[[allow]]
+path = "crates/runbookd/src/render.rs"
+family = "unwrap"
+classification = "migration_debt"
+owner = "runbook/policy"
+explanation = "Existing panic-family usage retained for first policy PR; remove by converting to Result-returning helpers or explicit error propagation."
+expires = "2026-07-01"
+[allow.selector]
+kind = "call"
+container = "render"
+callee = "unwrap"
+[allow.last_seen]
+line = 101
+column = 1
+
+[[allow]]
+path = "crates/runbookd/src/main.rs"
+family = "unwrap"
+classification = "migration_debt"
+owner = "runbook/policy"
+explanation = "Existing panic-family usage retained for first policy PR; remove by converting to Result-returning helpers or explicit error propagation."
+expires = "2026-07-01"
+[allow.selector]
+kind = "call"
+container = "main"
+callee = "unwrap"
+[allow.last_seen]
+line = 137
+column = 1
