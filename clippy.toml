@@ -1,0 +1,8 @@
+# Effortless Metrics Clippy policy overlay for runbook-rs.
+#
+# This file is intentionally reserved for repo-specific disallowed-methods,
+# disallowed-types, and disallowed-macros entries. Do not add test carveouts such
+# as allow-unwrap-in-tests, allow-expect-in-tests, allow-panic-in-tests,
+# allow-indexing-slicing-in-tests, or allow-dbg-in-tests. Temporary exceptions
+# belong in policy/clippy-debt.toml or narrow #[expect(..., reason = "...")]
+# suppressions.

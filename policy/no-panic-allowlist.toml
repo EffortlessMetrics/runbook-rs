@@ -1,0 +1,432 @@
+schema_version = "0.3"
+
+# Panic-family exceptions are intentionally empty for the strict lint-policy
+# infrastructure PR. Existing panic-family call sites should be migrated to
+# panic-free Result-returning helpers or reintroduced here only as reviewed,
+# owned, expiring semantic exceptions.
+#
+# [[allow]]
+# path = "crates/example/src/parser.rs"
+# family = "unwrap"
+# classification = "test_only"
+# owner = "parser"
+# explanation = "Fixture setup path; covered by follow-up panic-free helper migration."
+# expires = "2026-07-01"
+#
+# [allow.selector]
+# kind = "method_call"
+# container = "parses_fixture_with_boundary_case"
+# callee = "unwrap"
+# receiver_fingerprint = "std::fs::read_to_string(path)"
+#
+# [allow.last_seen]
+# line = 42
+# column = 17
+
+[[allow]]
+path = "crates/runbookd/src/reducer.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "runbookd"
+explanation = "Existing unwrap call retained as explicit migration debt for the strict no-panic policy rollout."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "sample_config"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 1
+column = 1
+
+[[allow]]
+path = "crates/runbookd/src/config.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "runbookd"
+explanation = "Existing unwrap call retained as explicit migration debt for the strict no-panic policy rollout."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "parse_sample_config"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 1
+column = 1
+
+[[allow]]
+path = "crates/runbookd/src/config.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "runbookd"
+explanation = "Existing unwrap call retained as explicit migration debt for the strict no-panic policy rollout."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "validate_sample_config"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 1
+column = 1
+
+[[allow]]
+path = "crates/runbookd/src/config.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "runbookd"
+explanation = "Existing unwrap call retained as explicit migration debt for the strict no-panic policy rollout."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "effective_command_claude_mode"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 1
+column = 1
+
+[[allow]]
+path = "crates/runbookd/src/config.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "runbookd"
+explanation = "Existing unwrap call retained as explicit migration debt for the strict no-panic policy rollout."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "effective_command_degraded_mode"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 1
+column = 1
+
+[[allow]]
+path = "crates/runbookd/src/config.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "runbookd"
+explanation = "Existing unwrap call retained as explicit migration debt for the strict no-panic policy rollout."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "validate_bad_prompt_ref"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 1
+column = 1
+
+[[allow]]
+path = "crates/runbookd/src/main.rs"
+family = "unwrap"
+classification = "production"
+owner = "runbookd"
+explanation = "Existing unwrap call retained as explicit migration debt for the strict no-panic policy rollout."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "handle_socket"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 1
+column = 1
+
+[[allow]]
+path = "crates/runbookd/src/render.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "runbookd"
+explanation = "Existing unwrap call retained as explicit migration debt for the strict no-panic policy rollout."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "sample_config"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 1
+column = 1
+
+[[allow]]
+path = "crates/runbookd/src/render.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "runbookd"
+explanation = "Existing unwrap call retained as explicit migration debt for the strict no-panic policy rollout."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "render_model_shows_armed"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 1
+column = 1
+
+[[allow]]
+path = "crates/runbookd/tests/bdd.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "runbookd"
+explanation = "Existing unwrap call retained as explicit migration debt for the strict no-panic policy rollout."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "sample_config"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 1
+column = 1
+
+[[allow]]
+path = "crates/runbookd/tests/bdd.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "runbookd"
+explanation = "Existing unwrap call retained as explicit migration debt for the strict no-panic policy rollout."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "agent_state_is"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 1
+column = 1
+
+[[allow]]
+path = "crates/runbookd/tests/bdd.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "runbookd"
+explanation = "Existing unwrap call retained as explicit migration debt for the strict no-panic policy rollout."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "hooks_mode_is"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 1
+column = 1
+
+[[allow]]
+path = "crates/runbookd/tests/bdd.rs"
+family = "expect"
+classification = "test_only"
+owner = "runbookd"
+explanation = "Existing expect call retained as explicit migration debt for the strict no-panic policy rollout."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "last_ended_state"
+callee = "expect"
+
+[allow.last_seen]
+line = 1
+column = 1
+
+[[allow]]
+path = "crates/runbookd/tests/bdd.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "runbookd"
+explanation = "Existing unwrap call retained as explicit migration debt for the strict no-panic policy rollout."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "last_ended_state"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 1
+column = 1
+
+[[allow]]
+path = "crates/runbook-protocol/src/bin/gen_schema.rs"
+family = "expect"
+classification = "tooling"
+owner = "protocol"
+explanation = "Existing expect call retained as explicit migration debt for the strict no-panic policy rollout."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "main"
+callee = "expect"
+
+[allow.last_seen]
+line = 1
+column = 1
+
+[[allow]]
+path = "crates/runbook-protocol/src/lib.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "protocol"
+explanation = "Existing unwrap call retained as explicit migration debt for the strict no-panic policy rollout."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "round_trip_client_to_daemon"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 1
+column = 1
+
+[[allow]]
+path = "crates/runbook-protocol/src/lib.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "protocol"
+explanation = "Existing unwrap call retained as explicit migration debt for the strict no-panic policy rollout."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "round_trip_daemon_to_client"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 1
+column = 1
+
+[[allow]]
+path = "crates/runbook-protocol/src/lib.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "protocol"
+explanation = "Existing unwrap call retained as explicit migration debt for the strict no-panic policy rollout."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "pre_tool_use_deny_output_matches_spec"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 1
+column = 1
+
+[[allow]]
+path = "crates/runbook-protocol/src/lib.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "protocol"
+explanation = "Existing unwrap call retained as explicit migration debt for the strict no-panic policy rollout."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "pre_tool_use_allow_output_matches_spec"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 1
+column = 1
+
+[[allow]]
+path = "crates/runbook-protocol/src/lib.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "protocol"
+explanation = "Existing unwrap call retained as explicit migration debt for the strict no-panic policy rollout."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "user_prompt_submit_output_matches_spec"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 1
+column = 1
+
+[[allow]]
+path = "crates/runbook-protocol/src/lib.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "protocol"
+explanation = "Existing unwrap call retained as explicit migration debt for the strict no-panic policy rollout."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "terminal_target_by_index_serializes"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 1
+column = 1
+
+[[allow]]
+path = "crates/runbook-protocol/src/lib.rs"
+family = "panic"
+classification = "test_only"
+owner = "protocol"
+explanation = "Existing panic call retained as explicit migration debt for the strict no-panic policy rollout."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "macro_call"
+container = "fixture"
+callee = "panic"
+
+[allow.last_seen]
+line = 1
+column = 1
+
+[[allow]]
+path = "crates/runbook-protocol/src/lib.rs"
+family = "panic"
+classification = "test_only"
+owner = "protocol"
+explanation = "Existing panic call retained as explicit migration debt for the strict no-panic policy rollout."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "macro_call"
+container = "assert_fixture_roundtrip<T>"
+callee = "panic"
+
+[allow.last_seen]
+line = 1
+column = 1
+
+[[allow]]
+path = "crates/runbook-protocol/src/lib.rs"
+family = "unwrap"
+classification = "test_only"
+owner = "protocol"
+explanation = "Existing unwrap call retained as explicit migration debt for the strict no-panic policy rollout."
+expires = "2026-07-01"
+
+[allow.selector]
+kind = "method_call"
+container = "assert_fixture_roundtrip<T>"
+callee = "unwrap"
+
+[allow.last_seen]
+line = 1
+column = 1

@@ -12,8 +12,7 @@ use tokio::sync::{broadcast, Mutex};
 use tracing::{error, info, warn};
 
 use runbook_protocol::{
-    ClientKind, ClientToDaemon, DaemonToClient, HelloAck, HookEvent, Notice,
-    PROTOCOL_VERSION,
+    ClientKind, ClientToDaemon, DaemonToClient, HelloAck, HookEvent, Notice, PROTOCOL_VERSION,
 };
 
 mod config;
@@ -98,10 +97,7 @@ async fn ws_handler(ws: WebSocketUpgrade, State(app): State<App>) -> impl IntoRe
     ws.on_upgrade(move |socket| handle_socket(app, socket))
 }
 
-async fn hook_handler(
-    State(app): State<App>,
-    Json(ev): Json<HookEvent>,
-) -> impl IntoResponse {
+async fn hook_handler(State(app): State<App>, Json(ev): Json<HookEvent>) -> impl IntoResponse {
     app.apply_event(Event::HookEvent {
         hook: ev.hook,
         matcher: ev.matcher,
