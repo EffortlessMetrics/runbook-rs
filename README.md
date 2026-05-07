@@ -88,6 +88,10 @@ Protocol types are in `crates/runbook-protocol`.
 
 The point: **truthful state**, not inference.
 
+## Coverage
+
+Codecov is execution-surface telemetry only; see [Coverage](docs/ci/coverage.md) for what the badge does and does not claim.
+
 ## License
 
 MIT OR Apache-2.0
