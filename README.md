@@ -1,5 +1,9 @@
 # runbookd
 
+[![Coverage](https://github.com/EffortlessMetrics/runbook-rs/actions/workflows/coverage.yml/badge.svg)](https://github.com/EffortlessMetrics/runbook-rs/actions/workflows/coverage.yml)
+[![Codecov](https://codecov.io/gh/EffortlessMetrics/runbook-rs/branch/main/graph/badge.svg)](https://codecov.io/gh/EffortlessMetrics/runbook-rs)
+[![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](#license)
+
 Runbook is a **physical control surface for the Claude Code agent loop**.
 
 This repository contains the **Rust daemon** (`runbookd`) and the Claude Code **hook consumer** (`runbook-hooks`). The daemon is the *brain*: it owns state (`ARMED`, agent lifecycle state from hooks), and it bridges between:
