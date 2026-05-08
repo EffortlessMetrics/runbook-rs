@@ -1,0 +1,118 @@
+schema_version = "1.0"
+
+[[allow]]
+glob = "docs/*.md"
+kind = "documentation"
+owner = "runbook/docs"
+reason = "Repository documentation is maintained in Markdown."
+surface = "docs"
+classification = "config"
+covered_by = ["cargo xtask check-file-policy"]
+
+[[allow]]
+glob = "crates/runbook-claude/skills/**/*.md"
+kind = "agent_skill_docs"
+owner = "runbook/claude"
+reason = "Claude plugin skills are distributed as Markdown instructions."
+surface = "agent-plugin"
+classification = "production"
+covered_by = ["cargo xtask check-file-policy"]
+
+[[allow]]
+glob = "claude-plugin/commands/*.md"
+kind = "agent_command_docs"
+owner = "runbook/claude"
+reason = "Claude plugin slash commands are Markdown command definitions."
+surface = "agent-plugin"
+classification = "production"
+covered_by = ["cargo xtask check-file-policy"]
+
+[[allow]]
+glob = "crates/runbook-protocol/fixtures/*.json"
+kind = "protocol_fixture"
+owner = "runbook/protocol"
+reason = "Protocol fixtures intentionally exercise serialized JSON payloads."
+surface = "fixtures"
+classification = "test"
+covered_by = ["cargo test --workspace"]
+
+[[allow]]
+glob = "crates/runbook-protocol/schema/*.json"
+kind = "generated_schema"
+owner = "runbook/protocol"
+reason = "Checked-in JSON schemas are consumed by clients and regenerated from Rust types."
+surface = "schema"
+classification = "production"
+covered_by = ["cargo run -p runbook-protocol --bin gen_schema"]
+
+[[allow]]
+glob = "crates/runbookd/tests/features/*.feature"
+kind = "bdd_feature"
+owner = "runbook/daemon"
+reason = "Cucumber feature files define executable daemon behavior scenarios."
+surface = "tests"
+classification = "test"
+covered_by = ["cargo test -p runbookd --test bdd"]
+
+[[allow]]
+path = "examples/simulate-hooks.sh"
+kind = "example_script"
+owner = "runbook/examples"
+reason = "Example shell script demonstrates Claude hook payload simulation."
+surface = "examples"
+classification = "tooling"
+covered_by = ["cargo xtask check-file-policy"]
+
+[[allow]]
+path = "crates/runbook-claude/package.json"
+kind = "claude_plugin_manifest"
+owner = "runbook/claude"
+reason = "Claude plugin packaging requires a JSON manifest."
+surface = "agent-plugin"
+classification = "production"
+covered_by = ["cargo xtask check-file-policy"]
+
+[[allow]]
+path = "claude-plugin/hooks/hooks.json"
+kind = "claude_hooks_manifest"
+owner = "runbook/claude"
+reason = "Claude Code hook registration is defined by JSON configuration."
+surface = "agent-plugin"
+classification = "production"
+covered_by = ["cargo xtask check-file-policy"]
+
+[[allow]]
+path = "runbook.yaml"
+kind = "example_config"
+owner = "runbook/examples"
+reason = "Runbook daemon configuration is YAML by product contract."
+surface = "examples"
+classification = "config"
+covered_by = ["cargo xtask check-file-policy"]
+
+[[allow]]
+path = "README.md"
+kind = "repository_readme"
+owner = "runbook/docs"
+reason = "The repository README is Markdown documentation for users and contributors."
+surface = "docs"
+classification = "config"
+covered_by = ["cargo xtask check-file-policy"]
+
+[[allow]]
+glob = ".vscode/*.json"
+kind = "editor_workspace_config"
+owner = "runbook/editor"
+reason = "Checked-in VS Code recommendations make the workspace easier to open consistently."
+surface = "editor"
+classification = "config"
+covered_by = ["cargo xtask check-file-policy"]
+
+[[allow]]
+path = "claude-plugin/.claude-plugin/plugin.json"
+kind = "claude_plugin_manifest"
+owner = "runbook/claude"
+reason = "Claude plugin packaging requires a JSON manifest."
+surface = "agent-plugin"
+classification = "production"
+covered_by = ["cargo xtask check-file-policy"]
