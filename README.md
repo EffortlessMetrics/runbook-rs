@@ -52,7 +52,17 @@ The plugin's `hooks/hooks.json` calls `runbook-hooks ...`.
 
 Make sure the `runbook-hooks` binary is on your `PATH` (or adjust the command in `hooks.json` to a full path).
 
-### 4) Connect clients
+### 4) Simulate hooks (optional)
+
+Use the Rust simulator to exercise the daemon without running Claude Code:
+
+```bash
+cargo run -p runbookd --example simulate_hooks
+```
+
+Set `DAEMON_BASE_URL` or pass `-- --daemon <URL>` when the daemon is not listening on `http://127.0.0.1:29381`.
+
+### 5) Connect clients
 
 - Install the VS Code extension (see `runbook-vscode` repo)
 - Install the Logi Actions plugin (see `runbook-actions-plugin` repo)
