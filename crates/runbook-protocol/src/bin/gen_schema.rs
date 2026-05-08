@@ -1,6 +1,6 @@
+use schemars::schema_for;
 use std::fs;
 use std::path::PathBuf;
-use schemars::schema_for;
 
 use runbook_protocol::{ClientToDaemon, DaemonToClient, RenderModel};
 

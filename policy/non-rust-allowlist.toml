@@ -1,0 +1,109 @@
+schema_version = "1.0"
+
+[[allow]]
+glob = ".github/workflows/*.yml"
+kind = "ci_declarative"
+owner = "release/ci"
+reason = "GitHub Actions workflow definitions are platform-required YAML."
+surface = "ci"
+classification = "config"
+covered_by = ["cargo xtask check-file-policy"]
+
+[[allow]]
+glob = ".vscode/*.json"
+kind = "editor_config"
+owner = "developer-experience"
+reason = "Editor recommendation and settings files are JSON consumed by VS Code."
+surface = "editor"
+classification = "config"
+covered_by = ["cargo xtask check-file-policy"]
+
+[[allow]]
+glob = "claude-plugin/**/*.json"
+kind = "plugin_manifest"
+owner = "agent-platform"
+reason = "Claude plugin manifests and hook wiring are JSON consumed by Claude Code."
+surface = "agent-plugin"
+classification = "config"
+covered_by = ["cargo xtask check-file-policy"]
+
+[[allow]]
+glob = "claude-plugin/**/*.md"
+kind = "plugin_prompt"
+owner = "agent-platform"
+reason = "Claude plugin slash-command prompts are Markdown by platform contract."
+surface = "agent-plugin"
+classification = "config"
+covered_by = ["cargo xtask check-file-policy"]
+
+[[allow]]
+glob = "crates/runbook-claude/package.json"
+kind = "node_package_manifest"
+owner = "agent-platform"
+reason = "Node package metadata is required for the Claude-facing package surface."
+surface = "agent-plugin"
+classification = "config"
+covered_by = ["cargo xtask check-file-policy"]
+
+[[allow]]
+glob = "docs/**/*.md"
+kind = "documentation"
+owner = "docs"
+reason = "Project documentation is intentionally authored in Markdown."
+surface = "docs"
+classification = "docs"
+covered_by = ["cargo xtask check-file-policy"]
+
+[[allow]]
+path = "README.md"
+kind = "documentation"
+owner = "docs"
+reason = "Repository overview is intentionally authored in Markdown."
+surface = "docs"
+classification = "docs"
+covered_by = ["cargo xtask check-file-policy"]
+
+[[allow]]
+path = "runbook.yaml"
+kind = "runtime_config"
+owner = "runbook"
+reason = "Example runbook configuration is YAML consumed by runbookd."
+surface = "config"
+classification = "config"
+covered_by = ["cargo xtask check-file-policy"]
+
+[[allow]]
+path = "examples/simulate-hooks.sh"
+kind = "example_script"
+owner = "developer-experience"
+reason = "Shell script demonstrates hook invocation outside the Rust binary boundary."
+surface = "examples"
+classification = "example"
+covered_by = ["cargo xtask check-file-policy"]
+
+[[allow]]
+glob = "crates/runbook-claude/skills/**/*.md"
+kind = "agent_skill"
+owner = "agent-platform"
+reason = "Claude skill instructions are Markdown consumed by the agent plugin package."
+surface = "agent-plugin"
+classification = "docs"
+covered_by = ["cargo xtask check-file-policy"]
+
+[[allow]]
+glob = "crates/runbook-protocol/fixtures/*.json"
+kind = "protocol_fixture"
+owner = "protocol"
+reason = "Protocol fixtures are JSON examples used by serialization compatibility tests."
+surface = "fixtures"
+classification = "test"
+covered_by = ["cargo test -p runbook-protocol"]
+
+[[allow]]
+glob = "crates/runbook-protocol/schema/*.json"
+kind = "generated_schema"
+owner = "protocol"
+reason = "Generated JSON schema artifacts document the wire protocol contract."
+surface = "schema"
+classification = "generated"
+covered_by = ["cargo run -p runbook-protocol --bin gen_schema"]
