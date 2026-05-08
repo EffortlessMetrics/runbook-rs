@@ -57,6 +57,16 @@ Make sure the `runbook-hooks` binary is on your `PATH` (or adjust the command in
 - Install the VS Code extension (see `runbook-vscode` repo)
 - Install the Logi Actions plugin (see `runbook-actions-plugin` repo)
 
+### Simulate hook events
+
+Use the Rust simulator to send a representative Claude Code hook lifecycle to a running daemon:
+
+```bash
+cargo run -p runbook-hooks --bin simulate-hooks
+```
+
+Set `DAEMON_BASE_URL` or pass `--daemon` when the daemon is not listening on `http://127.0.0.1:29381`.
+
 ## Config
 
 `runbook.yaml` is the repo-tuned keypad layout.
