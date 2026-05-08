@@ -2,6 +2,7 @@
 name = "runbook-hooks"
 version = "0.1.0"
 edition.workspace = true
+rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 description = "Hook consumer binary for Claude Code -> Runbook daemon."
@@ -15,3 +16,6 @@ runbook-protocol = { path = "../runbook-protocol" }
 # HTTP client for WebSocket fallback (optional)
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "blocking"] }
 
+
+[lints]
+workspace = true
