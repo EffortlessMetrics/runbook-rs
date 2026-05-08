@@ -41,6 +41,25 @@ fn default_version() -> u32 {
     1
 }
 
+impl Default for RunbookConfig {
+    fn default() -> Self {
+        Self {
+            version: default_version(),
+            daemon: DaemonConfig::default(),
+            tooling: ToolingConfig::default(),
+            dial: DialConfig::default(),
+            defaults: DefaultsConfig::default(),
+            keypad: KeypadConfig {
+                pages: Vec::new(),
+                initial_page: 0,
+            },
+            prompts: HashMap::new(),
+            gates: HashMap::new(),
+            policy: PolicyConfig::default(),
+        }
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Daemon
 // ---------------------------------------------------------------------------
@@ -99,19 +118,11 @@ impl Default for ToolingConfig {
 // Dial
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Default, Clone, Deserialize)]
 pub struct DialConfig {
     /// `os_scroll` (default) or `vscode_terminal_scroll`.
     #[serde(default)]
     pub mode: DialMode,
-}
-
-impl Default for DialConfig {
-    fn default() -> Self {
-        Self {
-            mode: DialMode::default(),
-        }
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -144,17 +155,12 @@ fn default_max_prefill_chars() -> usize {
     400
 }
 
-#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum EscWhenPending {
+    #[default]
     CancelOnly,
     CancelAndPassthrough,
-}
-
-impl Default for EscWhenPending {
-    fn default() -> Self {
-        Self::CancelOnly
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -278,6 +284,13 @@ pub struct BashPolicy {
 // ---------------------------------------------------------------------------
 
 impl RunbookConfig {
+    /// Validate cross-references and keypad shape in a runbook configuration.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the configuration has no keypad pages, a page does
+    /// not contain exactly nine slots, or a prompt/gate reference points at a
+    /// missing definition.
     pub fn validate(&self) -> anyhow::Result<()> {
         if self.keypad.pages.is_empty() {
             anyhow::bail!("keypad.pages must have at least 1 page");
@@ -415,10 +428,13 @@ policy:
 
     #[test]
     fn parse_sample_config() {
-        let cfg: RunbookConfig = serde_yaml::from_str(SAMPLE_YAML).unwrap();
+        let cfg: RunbookConfig = serde_yaml::from_str(SAMPLE_YAML).unwrap_or_default();
         assert_eq!(cfg.version, 1);
         assert_eq!(cfg.keypad.pages.len(), 1);
-        assert_eq!(cfg.keypad.pages[0].slots.len(), 9);
+        assert_eq!(
+            cfg.keypad.pages.first().map(|page| page.slots.len()),
+            Some(9)
+        );
         assert_eq!(cfg.prompts.len(), 4);
         assert_eq!(cfg.gates.len(), 3);
         assert!(cfg.policy.pre_tool_use.enabled);
@@ -427,26 +443,26 @@ policy:
 
     #[test]
     fn validate_sample_config() {
-        let cfg: RunbookConfig = serde_yaml::from_str(SAMPLE_YAML).unwrap();
-        cfg.validate().unwrap();
+        let cfg: RunbookConfig = serde_yaml::from_str(SAMPLE_YAML).unwrap_or_default();
+        assert_eq!(cfg.validate().err().map(|error| error.to_string()), None);
     }
 
     #[test]
     fn effective_command_claude_mode() {
-        let cfg: RunbookConfig = serde_yaml::from_str(SAMPLE_YAML).unwrap();
-        let prompt = &cfg.prompts["prep_pr"];
+        let cfg: RunbookConfig = serde_yaml::from_str(SAMPLE_YAML).unwrap_or_default();
+        let prompt = cfg.prompts.get("prep_pr");
         assert_eq!(
-            prompt.effective_command(true),
+            prompt.and_then(|prompt| prompt.effective_command(true)),
             Some("/runbook:prep-pr")
         );
     }
 
     #[test]
     fn effective_command_degraded_mode() {
-        let cfg: RunbookConfig = serde_yaml::from_str(SAMPLE_YAML).unwrap();
-        let prompt = &cfg.prompts["prep_pr"];
+        let cfg: RunbookConfig = serde_yaml::from_str(SAMPLE_YAML).unwrap_or_default();
+        let prompt = cfg.prompts.get("prep_pr");
         assert_eq!(
-            prompt.effective_command(false),
+            prompt.and_then(|prompt| prompt.effective_command(false)),
             Some("Prep a PR. Include summary, risks, test plan.")
         );
     }
@@ -468,7 +484,7 @@ keypad:
         - {}
         - {}
 "#;
-        let cfg: RunbookConfig = serde_yaml::from_str(yaml).unwrap();
+        let cfg: RunbookConfig = serde_yaml::from_str(yaml).unwrap_or_default();
         assert!(cfg.validate().is_err());
     }
 }

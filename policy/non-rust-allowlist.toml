@@ -1,0 +1,147 @@
+schema_version = "1.0"
+
+
+[[allow]]
+glob = ".vscode/*.json"
+kind = "editor_workspace_config"
+owner = "developer-experience"
+reason = "VS Code workspace recommendations and settings tune Rust editor checks for contributors."
+surface = "tooling"
+classification = "config"
+covered_by = ["cargo xtask check-file-policy"]
+
+[[allow]]
+glob = ".cargo/config.toml"
+kind = "cargo_config"
+owner = "platform"
+reason = "Cargo alias configuration is required to expose `cargo xtask` consistently."
+surface = "tooling"
+classification = "config"
+covered_by = ["cargo xtask check-file-policy"]
+
+[[allow]]
+glob = ".gitignore"
+kind = "repo_config"
+owner = "platform"
+reason = "Repository ignore policy is intentionally stored in Git's required text format."
+surface = "tooling"
+classification = "config"
+covered_by = ["cargo xtask check-file-policy"]
+
+[[allow]]
+glob = "*.txt"
+kind = "captured_output"
+owner = "platform"
+reason = "Checked-in text receipts are non-executable project artifacts."
+surface = "docs"
+classification = "artifact"
+covered_by = ["cargo xtask check-file-policy"]
+
+[[allow]]
+glob = "*.yaml"
+kind = "runtime_config"
+owner = "platform"
+reason = "Runbook runtime examples and operator configuration use YAML."
+surface = "config"
+classification = "config"
+covered_by = ["cargo xtask check-file-policy"]
+
+[[allow]]
+glob = "claude-plugin/**/*.md"
+kind = "claude_command"
+owner = "agent-experience"
+reason = "Claude plugin commands are distributed as Markdown command definitions."
+surface = "agent-plugin"
+classification = "production"
+covered_by = ["cargo xtask check-file-policy"]
+
+[[allow]]
+glob = "claude-plugin/**/*.json"
+kind = "claude_hook_manifest"
+owner = "agent-experience"
+reason = "Claude hook manifests are JSON platform configuration."
+surface = "agent-plugin"
+classification = "production"
+covered_by = ["cargo xtask check-file-policy"]
+
+[[allow]]
+glob = "crates/runbook-claude/**/*.md"
+kind = "claude_skill"
+owner = "agent-experience"
+reason = "Claude skills are Markdown instructions consumed by the host environment."
+surface = "agent-plugin"
+classification = "production"
+covered_by = ["cargo xtask check-file-policy"]
+
+[[allow]]
+glob = "crates/runbook-claude/package.json"
+kind = "node_package_manifest"
+owner = "agent-experience"
+reason = "The Claude plugin package metadata is required by the JavaScript/Node packaging ecosystem."
+surface = "agent-plugin"
+classification = "production"
+covered_by = ["cargo xtask check-file-policy"]
+
+[[allow]]
+glob = "crates/runbook-protocol/fixtures/*.json"
+kind = "protocol_fixture"
+owner = "protocol"
+reason = "Protocol JSON fixtures document and test daemon/client wire contracts."
+surface = "fixtures"
+classification = "test"
+covered_by = ["cargo test --workspace"]
+
+[[allow]]
+glob = "crates/runbook-protocol/schema/*.json"
+kind = "generated_schema"
+owner = "protocol"
+reason = "Generated JSON schemas are the public protocol contract artifact."
+surface = "protocol"
+classification = "production"
+covered_by = ["cargo test --workspace", "cargo run -p runbook-protocol --bin gen_schema"]
+
+[[allow]]
+glob = "crates/runbookd/tests/features/*.feature"
+kind = "bdd_feature"
+owner = "daemon"
+reason = "Cucumber feature files encode daemon behavior scenarios."
+surface = "tests"
+classification = "test"
+covered_by = ["cargo test -p runbookd --test bdd"]
+
+[[allow]]
+glob = "docs/**/*.md"
+kind = "documentation"
+owner = "docs"
+reason = "Project architecture and protocol documentation are maintained as Markdown."
+surface = "docs"
+classification = "docs"
+covered_by = ["cargo xtask check-file-policy"]
+
+[[allow]]
+glob = "examples/*.sh"
+kind = "operator_example"
+owner = "daemon"
+reason = "Shell examples demonstrate hook simulation from a user terminal."
+surface = "examples"
+classification = "docs"
+covered_by = ["cargo xtask check-file-policy"]
+
+
+[[allow]]
+glob = "clippy.toml"
+kind = "clippy_config"
+owner = "platform"
+reason = "Repo-local Clippy configuration is TOML consumed by cargo clippy."
+surface = "policy"
+classification = "config"
+covered_by = ["cargo xtask check-lint-policy"]
+
+[[allow]]
+glob = "policy/*.toml"
+kind = "policy_data"
+owner = "platform"
+reason = "Structured TOML policy ledgers are consumed by xtask governance checks."
+surface = "policy"
+classification = "config"
+covered_by = ["cargo xtask check-lint-policy", "cargo xtask check-file-policy"]
