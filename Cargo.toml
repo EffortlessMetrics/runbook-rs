@@ -4,10 +4,12 @@ members = [
   "crates/runbook-protocol",
   "crates/runbookd",
   "crates/runbook-hooks",
+  "xtask",
 ]
 
 [workspace.package]
 edition = "2021"
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/runbook-rs/runbookd"
+repository = "https://github.com/EffortlessMetrics/runbook-rs"
+rust-version = "1.95"
 
