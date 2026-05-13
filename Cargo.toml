@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
+  "xtask",
   "crates/runbook-protocol",
   "crates/runbookd",
   "crates/runbook-hooks",
