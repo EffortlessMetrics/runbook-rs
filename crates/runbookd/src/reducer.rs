@@ -3,9 +3,10 @@
 //! All state transitions happen here, making the daemon logic testable
 //! without network or I/O.
 
+use runbook_hook_state::{transition_for_hook, HookTransition};
 use runbook_protocol::{
-    AgentState, AdjustmentKind, ArmStyle, DialpadButton, HooksMode, PageDirection,
-    TerminalScrollUnit, TerminalTarget, TerminalsSnapshot, VscodeCommand,
+    AdjustmentKind, ArmStyle, DialpadButton, HooksMode, PageDirection, TerminalScrollUnit,
+    TerminalTarget, TerminalsSnapshot, VscodeCommand,
 };
 
 use crate::config::RunbookConfig;
@@ -14,10 +15,19 @@ use crate::state::DaemonState;
 /// Events the reducer consumes.
 #[derive(Debug)]
 pub enum Event {
-    KeypadPress { prompt_id: String },
-    DialpadButton { button: DialpadButton },
-    Adjustment { kind: AdjustmentKind, delta: i32 },
-    PageNav { direction: PageDirection },
+    KeypadPress {
+        prompt_id: String,
+    },
+    DialpadButton {
+        button: DialpadButton,
+    },
+    Adjustment {
+        kind: AdjustmentKind,
+        delta: i32,
+    },
+    PageNav {
+        direction: PageDirection,
+    },
     HookEvent {
         hook: String,
         matcher: Option<String>,
@@ -25,8 +35,12 @@ pub enum Event {
         session_tag: Option<String>,
     },
     TerminalsSnapshot(TerminalsSnapshot),
-    ClientConnected { kind: ClientKindTag },
-    ClientDisconnected { kind: ClientKindTag },
+    ClientConnected {
+        kind: ClientKindTag,
+    },
+    ClientDisconnected {
+        kind: ClientKindTag,
+    },
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -45,11 +59,7 @@ pub enum SideEffect {
 }
 
 /// Apply an event to the daemon state, returning side effects to execute.
-pub fn reduce(
-    state: &mut DaemonState,
-    config: &RunbookConfig,
-    event: Event,
-) -> Vec<SideEffect> {
+pub fn reduce(state: &mut DaemonState, config: &RunbookConfig, event: Event) -> Vec<SideEffect> {
     match event {
         Event::KeypadPress { prompt_id } => {
             // Arm the prompt
@@ -169,11 +179,7 @@ fn reduce_dialpad(
                 } else {
                     // Prefill style: the text is already in the terminal.
                     // Just send a bare Enter.
-                    let cmd = VscodeCommand::send_text(
-                        TerminalTarget::ActiveClaude,
-                        "",
-                        true,
-                    );
+                    let cmd = VscodeCommand::send_text(TerminalTarget::ActiveClaude, "", true);
                     return vec![
                         SideEffect::SendVscodeCommand(cmd),
                         SideEffect::BroadcastRender,
@@ -182,11 +188,7 @@ fn reduce_dialpad(
                 vec![SideEffect::BroadcastRender]
             } else {
                 // No prompt armed: send bare Enter (for /export confirmation, etc.)
-                let cmd = VscodeCommand::send_text(
-                    TerminalTarget::ActiveClaude,
-                    "",
-                    true,
-                );
+                let cmd = VscodeCommand::send_text(TerminalTarget::ActiveClaude, "", true);
                 vec![SideEffect::SendVscodeCommand(cmd)]
             }
         }
@@ -201,11 +203,8 @@ fn reduce_dialpad(
                         vec![SideEffect::BroadcastRender]
                     }
                     EscWhenPending::CancelAndPassthrough => {
-                        let cmd = VscodeCommand::send_text(
-                            TerminalTarget::ActiveClaude,
-                            "\u{1b}",
-                            false,
-                        );
+                        let cmd =
+                            VscodeCommand::send_text(TerminalTarget::ActiveClaude, "\u{1b}", false);
                         vec![
                             SideEffect::SendVscodeCommand(cmd),
                             SideEffect::BroadcastRender,
@@ -214,43 +213,27 @@ fn reduce_dialpad(
                 }
             } else {
                 // Send Esc to Claude terminal.
-                let cmd = VscodeCommand::send_text(
-                    TerminalTarget::ActiveClaude,
-                    "\u{1b}",
-                    false,
-                );
+                let cmd = VscodeCommand::send_text(TerminalTarget::ActiveClaude, "\u{1b}", false);
                 vec![SideEffect::SendVscodeCommand(cmd)]
             }
         }
 
         DialpadButton::CtrlC => {
             // Always forward Ctrl+C. Claude Code handles null-first-press gate.
-            let cmd = VscodeCommand::send_text(
-                TerminalTarget::ActiveClaude,
-                "\u{0003}",
-                false,
-            );
+            let cmd = VscodeCommand::send_text(TerminalTarget::ActiveClaude, "\u{0003}", false);
             vec![SideEffect::SendVscodeCommand(cmd)]
         }
 
         DialpadButton::Export => {
             // Send /export with newline — starts the flow immediately.
             // Claude's own confirmation prompts remain the safety gate.
-            let cmd = VscodeCommand::send_text(
-                TerminalTarget::ActiveClaude,
-                "/export",
-                true,
-            );
+            let cmd = VscodeCommand::send_text(TerminalTarget::ActiveClaude, "/export", true);
             vec![SideEffect::SendVscodeCommand(cmd)]
         }
     }
 }
 
-fn reduce_adjustment(
-    state: &mut DaemonState,
-    kind: AdjustmentKind,
-    delta: i32,
-) -> Vec<SideEffect> {
+fn reduce_adjustment(state: &mut DaemonState, kind: AdjustmentKind, delta: i32) -> Vec<SideEffect> {
     match kind {
         AdjustmentKind::Dial => {
             // Scroll terminal output.
@@ -264,10 +247,7 @@ fn reduce_adjustment(
         AdjustmentKind::Roller => {
             // Cycle terminals by direction.
             let _ = state; // state not mutated for roller
-            let cmd = VscodeCommand::focus_terminal(
-                TerminalTarget::Active,
-                delta.signum(),
-            );
+            let cmd = VscodeCommand::focus_terminal(TerminalTarget::Active, delta.signum());
             vec![SideEffect::SendVscodeCommand(cmd)]
         }
     }
@@ -292,46 +272,14 @@ fn reduce_hook(
         state.learn_session_tag(tag, &sid);
     }
 
-    let session = state.ensure_session(&sid);
-
-    match hook.as_str() {
-        "SessionStart" => {
-            session.agent_state = AgentState::Idle;
+    match transition_for_hook(&hook, matcher.as_deref()) {
+        HookTransition::SetState(agent_state) => {
+            state.ensure_session(&sid).agent_state = agent_state;
         }
-        "Notification" => match matcher.as_deref() {
-            Some("idle_prompt") => session.agent_state = AgentState::Idle,
-            Some("permission_prompt") => session.agent_state = AgentState::WaitingPermission,
-            Some("elicitation_dialog") => session.agent_state = AgentState::WaitingInput,
-            _ => {}
-        },
-        "UserPromptSubmit" => {
-            session.agent_state = AgentState::Running;
-        }
-        "PreToolUse" => {
-            session.agent_state = AgentState::Running;
-        }
-        "PermissionRequest" => {
-            session.agent_state = AgentState::WaitingPermission;
-        }
-        "PostToolUse" | "PostToolUseFailure" => {
-            session.agent_state = AgentState::Running;
-        }
-        "TaskCompleted" => {
-            session.agent_state = AgentState::Complete;
-        }
-        "Stop" => {
-            session.agent_state = AgentState::Settled;
-        }
-        "SessionEnd" => {
+        HookTransition::EndSession => {
             state.remove_session(&sid);
         }
-        "RunbookPolicy" => match matcher.as_deref() {
-            Some("blocked") => {
-                session.agent_state = AgentState::Blocked;
-            }
-            _ => {}
-        },
-        _ => {}
+        HookTransition::Noop => {}
     }
 
     vec![SideEffect::BroadcastRender]
@@ -346,6 +294,7 @@ mod tests {
     use super::*;
     use crate::config::RunbookConfig;
     use crate::state::DaemonState;
+    use runbook_protocol::AgentState;
 
     fn sample_config() -> RunbookConfig {
         let yaml = r#"
@@ -402,7 +351,9 @@ prompts:
         );
         assert!(state.armed.is_none());
         assert!(state.last_dispatched.as_deref() == Some("prep_pr"));
-        assert!(effects.iter().any(|e| matches!(e, SideEffect::SendVscodeCommand(_))));
+        assert!(effects
+            .iter()
+            .any(|e| matches!(e, SideEffect::SendVscodeCommand(_))));
     }
 
     #[test]
@@ -429,7 +380,9 @@ prompts:
         );
         assert!(state.armed.is_none());
         // Should broadcast render, should NOT send Esc to terminal.
-        assert!(effects.iter().all(|e| matches!(e, SideEffect::BroadcastRender)));
+        assert!(effects
+            .iter()
+            .all(|e| matches!(e, SideEffect::BroadcastRender)));
     }
 
     #[test]
@@ -444,7 +397,9 @@ prompts:
                 button: DialpadButton::Esc,
             },
         );
-        assert!(effects.iter().any(|e| matches!(e, SideEffect::SendVscodeCommand(_))));
+        assert!(effects
+            .iter()
+            .any(|e| matches!(e, SideEffect::SendVscodeCommand(_))));
     }
 
     #[test]
@@ -459,7 +414,9 @@ prompts:
                 button: DialpadButton::Enter,
             },
         );
-        assert!(effects.iter().any(|e| matches!(e, SideEffect::SendVscodeCommand(_))));
+        assert!(effects
+            .iter()
+            .any(|e| matches!(e, SideEffect::SendVscodeCommand(_))));
     }
 
     #[test]
@@ -522,7 +479,6 @@ prompts:
 
     #[test]
     fn no_hooks_means_unknown() {
-        let config = sample_config();
         let state = DaemonState::new(0);
         assert_eq!(state.hooks_mode, HooksMode::Absent);
         assert_eq!(state.current_agent_state(), AgentState::Unknown);
@@ -673,4 +629,3 @@ prompts:
         );
     }
 }
-
