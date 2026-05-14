@@ -1415,12 +1415,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "runbook-bash-policy"
+version = "0.1.0"
+
+[[package]]
 name = "runbook-hooks"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
  "reqwest",
+ "runbook-bash-policy",
  "runbook-protocol",
  "serde",
  "serde_json",
