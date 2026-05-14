@@ -3,6 +3,7 @@ use std::io::Read;
 use clap::Parser;
 use serde_json::Value;
 
+use runbook_bash_policy::{built_in_deny_patterns, extract_bash_command, matches_any_pattern};
 use runbook_protocol::{HookEvent, UserPromptSubmitOutput};
 
 /// Claude Code hook consumer.
@@ -11,7 +12,10 @@ use runbook_protocol::{HookEvent, UserPromptSubmitOutput};
 /// We forward the event to runbookd over localhost and (optionally) emit
 /// hook-specific output JSON to stdout (e.g., to block a tool call).
 #[derive(Debug, Parser)]
-#[command(name = "runbook-hooks", about = "Runbook hook consumer for Claude Code")]
+#[command(
+    name = "runbook-hooks",
+    about = "Runbook hook consumer for Claude Code"
+)]
 struct Args {
     /// Hook name, e.g. PreToolUse, UserPromptSubmit, Notification
     hook: String,
@@ -56,7 +60,12 @@ fn main() -> anyhow::Result<()> {
     let session_tag = std::env::var("RUNBOOK_SESSION_TAG").ok();
 
     // Forward event to daemon (best-effort, fire-and-forget).
-    forward_to_daemon(&args, &payload, session_id.as_deref(), session_tag.as_deref());
+    forward_to_daemon(
+        &args,
+        &payload,
+        session_id.as_deref(),
+        session_tag.as_deref(),
+    );
 
     // --- Hook-specific enforcement ---
 
@@ -65,9 +74,7 @@ fn main() -> anyhow::Result<()> {
             let deny_patterns = built_in_deny_patterns();
             let extra = &args.deny_patterns;
 
-            if matches_any_pattern(cmd, &deny_patterns)
-                || matches_any_pattern(cmd, extra)
-            {
+            if matches_any_pattern(cmd, &deny_patterns) || matches_any_pattern(cmd, extra) {
                 // Notify the daemon that we blocked something (UI signal).
                 notify_daemon_blocked(&args, session_id.as_deref(), session_tag.as_deref(), cmd);
 
@@ -82,9 +89,8 @@ fn main() -> anyhow::Result<()> {
     if args.hook == "UserPromptSubmit" {
         // Inject git branch as additional context.
         let branch = git_branch().unwrap_or_else(|| "(unknown)".to_string());
-        let out = UserPromptSubmitOutput::with_context(&format!(
-            "Runbook context: git_branch={branch}"
-        ));
+        let out =
+            UserPromptSubmitOutput::with_context(&format!("Runbook context: git_branch={branch}"));
         println!("{}", serde_json::to_string(&out)?);
     }
 
@@ -95,7 +101,12 @@ fn main() -> anyhow::Result<()> {
 // Daemon forwarding
 // ---------------------------------------------------------------------------
 
-fn forward_to_daemon(args: &Args, payload: &Value, session_id: Option<&str>, session_tag: Option<&str>) {
+fn forward_to_daemon(
+    args: &Args,
+    payload: &Value,
+    session_id: Option<&str>,
+    session_tag: Option<&str>,
+) {
     let client = reqwest::blocking::Client::builder()
         .timeout(std::time::Duration::from_millis(250))
         .build();
@@ -116,7 +127,12 @@ fn forward_to_daemon(args: &Args, payload: &Value, session_id: Option<&str>, ses
 
 /// Notify the daemon that we blocked a tool call via our policy.
 /// This is our own truth signal ("RunbookPolicy/blocked"), NOT a Claude lifecycle event.
-fn notify_daemon_blocked(args: &Args, session_id: Option<&str>, session_tag: Option<&str>, command: &str) {
+fn notify_daemon_blocked(
+    args: &Args,
+    session_id: Option<&str>,
+    session_tag: Option<&str>,
+    command: &str,
+) {
     let client = reqwest::blocking::Client::builder()
         .timeout(std::time::Duration::from_millis(250))
         .build();
@@ -141,38 +157,6 @@ fn notify_daemon_blocked(args: &Args, session_id: Option<&str>, session_tag: Opt
 }
 
 // ---------------------------------------------------------------------------
-// Bash command analysis
-// ---------------------------------------------------------------------------
-
-fn extract_bash_command(payload: &Value) -> Option<String> {
-    // Claude Code hook payload for PreToolUse includes tool_input.command for Bash.
-    payload
-        .get("tool_input")
-        .and_then(|v| v.get("command"))
-        .and_then(|v| v.as_str())
-        .map(|s| s.to_string())
-}
-
-fn built_in_deny_patterns() -> Vec<String> {
-    vec![
-        "rm -rf".to_string(),
-        "rm -r ".to_string(),
-        "mkfs".to_string(),
-        "dd if=".to_string(),
-        "shutdown".to_string(),
-        "reboot".to_string(),
-        "git push --force".to_string(),
-        "git push -f".to_string(),
-        "git reset --hard".to_string(),
-    ]
-}
-
-fn matches_any_pattern(cmd: &str, patterns: &[String]) -> bool {
-    let lower = cmd.to_lowercase();
-    patterns.iter().any(|p| lower.contains(&p.to_lowercase()))
-}
-
-// ---------------------------------------------------------------------------
 // Git context
 // ---------------------------------------------------------------------------
 
@@ -185,5 +169,9 @@ fn git_branch() -> Option<String> {
         return None;
     }
     let s = String::from_utf8_lossy(&out.stdout).trim().to_string();
-    if s.is_empty() { None } else { Some(s) }
+    if s.is_empty() {
+        None
+    } else {
+        Some(s)
+    }
 }

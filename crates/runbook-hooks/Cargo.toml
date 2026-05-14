@@ -12,6 +12,7 @@ clap = { version = "4", features = ["derive"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 runbook-protocol = { path = "../runbook-protocol" }
+runbook-bash-policy = { path = "../runbook-bash-policy" }
 # HTTP client for WebSocket fallback (optional)
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "blocking"] }
 
