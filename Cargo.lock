@@ -1415,6 +1415,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "runbook-agent-fsm"
+version = "0.1.0"
+dependencies = [
+ "runbook-protocol",
+]
+
+[[package]]
 name = "runbook-hooks"
 version = "0.1.0"
 dependencies = [
@@ -1444,6 +1451,7 @@ dependencies = [
  "clap",
  "cucumber",
  "futures",
+ "runbook-agent-fsm",
  "runbook-protocol",
  "serde",
  "serde_json",

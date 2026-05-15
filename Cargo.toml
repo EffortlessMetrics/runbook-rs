@@ -2,6 +2,7 @@
 resolver = "2"
 members = [
   "crates/runbook-protocol",
+  "crates/runbook-agent-fsm",
   "crates/runbookd",
   "crates/runbook-hooks",
 ]
