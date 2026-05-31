@@ -1421,10 +1421,15 @@ dependencies = [
  "anyhow",
  "clap",
  "reqwest",
+ "runbook-policy",
  "runbook-protocol",
  "serde",
  "serde_json",
 ]
+
+[[package]]
+name = "runbook-policy"
+version = "0.1.0"
 
 [[package]]
 name = "runbook-protocol"
