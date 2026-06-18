@@ -11,17 +11,18 @@ anyhow = "1"
 axum = { version = "0.7", features = ["ws"] }
 clap = { version = "4", features = ["derive"] }
 futures = "0.3"
-serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_yaml = "0.9"
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "sync"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 runbook-protocol = { path = "../runbook-protocol" }
+runbook-config = { path = "../runbook-config" }
 
 [dev-dependencies]
 cucumber = "0.22"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+runbook-config = { path = "../runbook-config" }
 
 [[test]]
 name = "bdd"
