@@ -1436,6 +1436,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "runbook-session-resolver"
+version = "0.1.0"
+dependencies = [
+ "runbook-protocol",
+]
+
+[[package]]
 name = "runbookd"
 version = "0.1.0"
 dependencies = [
@@ -1445,6 +1452,7 @@ dependencies = [
  "cucumber",
  "futures",
  "runbook-protocol",
+ "runbook-session-resolver",
  "serde",
  "serde_json",
  "serde_yaml",

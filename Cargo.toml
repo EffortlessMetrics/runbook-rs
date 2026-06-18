@@ -4,6 +4,7 @@ members = [
   "crates/runbook-protocol",
   "crates/runbookd",
   "crates/runbook-hooks",
+  "crates/runbook-session-resolver",
 ]
 
 [workspace.package]
