@@ -1421,8 +1421,16 @@ dependencies = [
  "anyhow",
  "clap",
  "reqwest",
+ "runbook-hooks-policy",
  "runbook-protocol",
  "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "runbook-hooks-policy"
+version = "0.1.0"
+dependencies = [
  "serde_json",
 ]
 
