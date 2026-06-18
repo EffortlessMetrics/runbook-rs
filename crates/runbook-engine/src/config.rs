@@ -435,10 +435,7 @@ policy:
     fn effective_command_claude_mode() {
         let cfg: RunbookConfig = serde_yaml::from_str(SAMPLE_YAML).unwrap();
         let prompt = &cfg.prompts["prep_pr"];
-        assert_eq!(
-            prompt.effective_command(true),
-            Some("/runbook:prep-pr")
-        );
+        assert_eq!(prompt.effective_command(true), Some("/runbook:prep-pr"));
     }
 
     #[test]

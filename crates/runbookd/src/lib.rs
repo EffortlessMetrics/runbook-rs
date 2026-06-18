@@ -1,6 +1,3 @@
 //! Runbook daemon library — re-exports for tests and integration consumers.
 
-pub mod config;
-pub mod reducer;
-pub mod render;
-pub mod state;
+pub use runbook_engine::{config, reducer, render, state};
